@@ -7,7 +7,7 @@ Created on Tue Dec 10 11:39:12 2024
 
 import numpy as np
 import matplotlib.pyplot as plt
-from tqdm import tqdm  # Import the tqdm package for progress bar functionality
+from mlmc.core.standard import standard_mc
 
 # Define constants for the problem
 r = 0.05  # Risk-free interest rate
@@ -16,62 +16,6 @@ S0 = 1  # Initial stock price
 K = 1  # Strike price
 T = 1  # Time to maturity
 
-
-#function standard MC on N realisations, for time step h (which will be compared 
-#to time step h/2 for the bias):
-def StandardMC(S0, r, sigma, K, T, N, h_coarse):
-    
-    #define the finer grid to estimate the bias:
-    h_fine = h_coarse /2 
-    M_coarse = int(T/h_coarse)
-    M_fine = int(T/h_fine)
-
-    # Pre-allocate storage for the payoffs
-    payoffs_coarse = np.zeros(N)  # Array to store the payoffs for each path, coarse time grid
-    payoffs_fine = np.zeros(N)  # Array to store the payoffs for each path, finer time grid
-
-    # Simulate N independent paths of the geometric Brownian motion
-    for n in tqdm(range(N), desc="Simulating Paths"):  # Add progress bar for the loop
-        S_fine = np.zeros(M_fine + 1)  # Array to store the asset prices for a single path
-        S_fine[0] = S0  # Initial stock price
-        S_coarse = np.zeros(M_coarse + 1)
-        S_coarse[0] = S0
-    
-        # Obtain the Brownian increments on the fine grid
-        dW_fine = np.random.normal(0, np.sqrt(h_fine), size=M_fine)
-        
-        # Simulate the path using the Euler-Maruyama scheme, first on the finer grid
-        for m in range(M_fine):
-            # Update stock price using Euler-Maruyama scheme
-            S_fine[m + 1] = S_fine[m] + r * S_fine[m] * h_fine + sigma * S_fine[m] * dW_fine[m]
-        
-        # Sum the Brownian increments to create coarser grid increments
-        dW_coarse = np.add.reduceat(dW_fine, np.arange(0, M_fine, 2))
-            
-        # Simulate the path now on the coarse grid
-        for m in range(M_coarse):
-            S_coarse[m + 1] = S_coarse[m] + r * S_coarse[m] * h_coarse + sigma * S_coarse[m] * dW_coarse[m]
-        
-        # Approximate the arithmetic average price, for fine and coarse grids
-        Sbar_fine = h_fine * np.sum((S_fine[:-1] + S_fine[1:]) / 2)
-        Sbar_coarse = h_coarse * np.sum((S_coarse[:-1] + S_coarse[1:]) / 2)
-    
-        # Compute the discounted payoff for the Asian option
-        payoffs_fine[n] = np.exp(-r) * max(0, Sbar_fine - K)
-        payoffs_coarse[n] = np.exp(-r) * max(0, Sbar_coarse - K)
-    
-    result = {
-        'esp_coarse': np.mean(payoffs_coarse),
-        'esp_fine': np.mean(payoffs_fine),
-        'var_coarse':np.var(payoffs_coarse, ddof = 1)/N,
-        'var_fine' : np.var(payoffs_fine, ddof = 1)/N,
-        # quantity below would be E[Y_L] in the statement
-        'esp_diff' : np.mean(payoffs_fine - payoffs_coarse),
-        'var_diff' : np.var(payoffs_fine - payoffs_coarse, ddof = 1),
-        'bias': abs(np.mean(payoffs_coarse) - np.mean(payoffs_fine))
-    }
-    
-    return result
 
 #function to look at what happens when we vary N, number of MC realisations:
 def VaryN_MC(S0, r, sigma, K, T, h_coarse, Nstart, Nend, Nit):
@@ -82,7 +26,7 @@ def VaryN_MC(S0, r, sigma, K, T, h_coarse, Nstart, Nend, Nit):
     var_coarse = np.zeros(Nit)
     
     for j in range(Nit):
-       result = StandardMC(S0, r, sigma, K, T, Nvec[j], h_coarse)
+       result = standard_mc(S0, r, sigma, K, T, Nvec[j], h_coarse)
        bias[j] = result['bias']
        esp_coarse[j] = result['esp_coarse']
        var_coarse[j] = result['var_coarse']
@@ -107,7 +51,7 @@ def Vary_h_coarse(S0, r, sigma, K, T,  N, hstart, hend, Nit):
     var_diff = np.zeros(Nit)
     
     for j in range(Nit):
-       result = StandardMC(S0, r, sigma, K, T, N, hvec[j])
+       result = standard_mc(S0, r, sigma, K, T, N, hvec[j])
        bias[j] = result['bias']
        esp_coarse[j] = result['esp_coarse']
        var_coarse[j] = result['var_coarse']
@@ -133,7 +77,7 @@ if singleRunMC:
     #Warning : we are also going to simulate 2M, to compare with finer grid. 
     N = 100  # Number of simulated paths
     h_coarse = T / M_coarse  # Step size for discretization
-    resultMC = StandardMC(S0, r, sigma, K, T, N, h_coarse)
+    resultMC = standard_mc(S0, r, sigma, K, T, N, h_coarse)
     # Print results
     print(f"Estimated Asian Option Price using coarse grid: {resultMC['esp_coarse']:.8f}")
     print(f"Estimated Asian Option Price using finer grid: {resultMC['esp_fine']:.8f}")
