@@ -168,5 +168,6 @@ def set_plot_style(color_style=SIAM, usetex=False):
         mpl.rcParams["ytick.color"] = EPFL_NEUTRALS[0]
 
     if usetex:
+        mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath}'
         mpl.rcParams["text.usetex"] = usetex
         mpl.rcParams["font.family"] = "serif"
