@@ -7,7 +7,8 @@ Created on Tue Dec 10 11:39:12 2024
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mlmc.core.standard import standard_mc
+from mlmc.core.estimators import coarse_fine_mc
+from mlmc.core.payoff import asian_option
 
 # Define constants for the problem
 r = 0.05  # Risk-free interest rate
@@ -26,7 +27,7 @@ def VaryN_MC(S0, r, sigma, K, T, h_coarse, Nstart, Nend, Nit):
     var_coarse = np.zeros(Nit)
     
     for j in range(Nit):
-       result = standard_mc(S0, r, sigma, K, T, Nvec[j], h_coarse)
+       result = coarse_fine_mc(S0, r, sigma, K, T, Nvec[j], h_coarse)
        bias[j] = result['bias']
        esp_coarse[j] = result['esp_coarse']
        var_coarse[j] = result['var_coarse']
@@ -51,7 +52,7 @@ def Vary_h_coarse(S0, r, sigma, K, T,  N, hstart, hend, Nit):
     var_diff = np.zeros(Nit)
     
     for j in range(Nit):
-       result = standard_mc(S0, r, sigma, K, T, N, hvec[j])
+       result = coarse_fine_mc(S0, r, sigma, K, T, N, hvec[j])
        bias[j] = result['bias']
        esp_coarse[j] = result['esp_coarse']
        var_coarse[j] = result['var_coarse']
@@ -77,7 +78,7 @@ if singleRunMC:
     #Warning : we are also going to simulate 2M, to compare with finer grid. 
     N = 100  # Number of simulated paths
     h_coarse = T / M_coarse  # Step size for discretization
-    resultMC = standard_mc(S0, r, sigma, K, T, N, h_coarse)
+    resultMC = coarse_fine_mc(S0, r, sigma, K, T, N, h_coarse)
     # Print results
     print(f"Estimated Asian Option Price using coarse grid: {resultMC['esp_coarse']:.8f}")
     print(f"Estimated Asian Option Price using finer grid: {resultMC['esp_fine']:.8f}")

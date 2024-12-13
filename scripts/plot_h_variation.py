@@ -11,28 +11,53 @@ PLOT_DIR = Path("../plots/asian_option")
 PLOT_DIR.mkdir(exist_ok=True, parents=True)
 
 
-def main(nsamp: int, style: str = NATURE, usetex: bool = False) -> None:
+def main(nsamp: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False) -> None:
 
-    df = pd.read_csv(DATA_DIR / f"h_variation-nsamp={nsamp}.csv")
+    for nseed in range(nseeds):
+        df = pd.read_csv(
+            DATA_DIR / f"h_variation_nsamp={nsamp}_seed={nseed}.csv"
+        )
+        if nseed == 0:
+            bias = df["bias"]
+            var = df["variance_coarse"]
+        else:
+            bias += df["bias"]
+            var += df["variance_coarse"]
+
+    bias /= nseeds
+    bias_trend = bias.iloc[-1] * df["h"] / df["h"].iloc[-1]
+
+    var /= nseeds
+    var_trend = var.iloc[-1] * np.ones_like(df["h"])
 
     set_plot_style(style, usetex)
-    fig, ax = plt.subplots(figsize=LINEWIDTH_SIZE, layout="constrained")
-
-    variance_diff_trend = df["variance_diff"].iloc[0] * df["h"].iloc[0] * df["h"]
-    ax.loglog(
+    fig, (ax_bias, ax_var) = plt.subplots(
+        2, 1, figsize=(LINEWIDTH_SIZE[0], 4), layout="constrained", sharex=True
+    )
+    ax_bias.loglog(
         df["h"],
-        variance_diff_trend,
+        bias_trend,
         label="$\mathcal{O}(h)$",
         linestyle="--",
         color="black",
     )
-    ax.loglog(df["h"], df["variance_diff"], label="variance diff", marker="o")
-    ax.set_xlim(df["h"].min(), df["h"].max())
-    ax.set_xlabel("Time step size $h$")
-    ax.grid(True, which="both", linestyle="--", linewidth=0.5)
-    ax.legend(loc="best")
+    ax_bias.loglog(df["h"], df["bias"], label=r"$\mathrm{E}[Y_h - Y_{h/2}]$", marker="o")
+    ax_bias.set_xlim(df["h"].min(), df["h"].max())
+    ax_bias.legend(loc="best")
 
-    fn = f"h_variation-nsamp={nsamp}.pdf"
+    ax_var.loglog(
+        df["h"],
+        var_trend,
+        label="$\mathcal{O}(1)$",
+        linestyle="--",
+        color="black",
+    )
+    ax_var.loglog(df["h"], var, label="$\mathrm{V}[Y_h]$", marker="o")
+    ax_var.set_xlim(df["h"].min(), df["h"].max())
+    ax_var.set_xlabel("time step size $h$")
+    ax_var.legend(loc="best")
+
+    fn = f"h_variation-nsamp={nsamp}_nseeds={nseeds}.pdf"
     fig.savefig(PLOT_DIR / fn)
     print(f"Plot saved to {PLOT_DIR / fn}")
 
@@ -41,7 +66,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Script to analyze the variation of the time step."
     )
-    parser.add_argument("--nsamp", type=int, default=1000, help="Number of samples")
+    parser.add_argument("--nsamp", type=int, default=10000, help="Number of samples")
+    parser.add_argument("--nseeds", type=int, default=10, help="Number of seeds")
     parser.add_argument(
         "--style", type=str, default=NATURE, choices=STYLES, help="Plot style"
     )
@@ -50,4 +76,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    main(args.nsamp, args.style, args.usetex)
+    main(args.nsamp, args.nseeds, args.style, args.usetex)
