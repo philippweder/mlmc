@@ -43,8 +43,8 @@ def main(
     var_crude /= nseeds
 
     set_plot_style(style, usetex)
-    fig, (ax_eff, ax_nsamp, ax_cost) = plt.subplots(
-        3, 1, figsize=(LINEWIDTH_SIZE[0], 6), layout="constrained", sharex=True
+    fig, ((ax_eff, ax_nsamp), (ax_cost, ax_mean)) = plt.subplots(
+        2, 2, figsize=(2 * LINEWIDTH_SIZE[0], 4), layout="constrained", sharex=True
     )
 
     ax_eff.loglog(
@@ -71,6 +71,12 @@ def main(
     ax_cost.set_xlim(df["nsamp"].min(), df["nsamp"].max())
     ax_cost.set_xlabel("number of coarse samples $N_0$")
     ax_cost.legend(loc="best")
+
+    ax_mean.loglog(df["nsamp"], mean_2l, label="$\hat{\mu}_h^{(2)}$", marker="o")
+    ax_mean.loglog(df["nsamp"], mean_crude, label="$\hat{\mu}_{h/2}^{\mathrm{crude}}$", marker="s")
+    ax_mean.set_xlim(df["nsamp"].min(), df["nsamp"].max())
+    ax_mean.set_xlabel("number of coarse samples $N_0$")
+    ax_mean.legend(loc="best")
 
     fn = f"two-level_nsamp_pilot={nsamp_pilot}_nseeds={nseeds}.pdf"
     fig.savefig(PLOT_DIR / fn)

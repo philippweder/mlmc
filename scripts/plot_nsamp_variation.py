@@ -22,15 +22,19 @@ def main(
         if nseed == 0:
             bias = df["bias"]
             var = df["variance_coarse"]
+            var_diff = df["variance_diff"]
         else:
             bias += df["bias"]
             var += df["variance_coarse"]
+            var_diff += df["variance_diff"]
 
     bias /= nseeds
     bias_trend = bias.iloc[0] * np.sqrt(df["nsamp"].iloc[0]) / np.sqrt(df["nsamp"])
 
     var /= nseeds
     var_trend = var.iloc[0] * df["nsamp"].iloc[0] / df["nsamp"]
+
+    var_diff /= nseeds
 
     set_plot_style(style, usetex)
     fig, (ax_bias, ax_var) = plt.subplots(
@@ -43,9 +47,12 @@ def main(
         linestyle="--",
         color="black",
     )
-    ax_bias.loglog(df["nsamp"], df["bias"], label=r"$\mathrm{E}[Y_h - Y_{h/2}]$", marker="o")
+    ax_bias.loglog(df["nsamp"], bias, label=r"$|\hat{\mu}^{(1)}_h - \hat{\mu}^{(1)}_{h/2}|$", marker="o")
     ax_bias.set_xlim(df["nsamp"].min(), df["nsamp"].max())
-    ax_bias.legend(loc="best")
+    h, l = ax_bias.get_legend_handles_labels()
+    h = h[1:] + [h[0]]
+    l = l[1:] + [l[0]]
+    ax_bias.legend(h, l, loc="best")
 
     ax_var.loglog(
         df["nsamp"],
@@ -54,10 +61,15 @@ def main(
         linestyle="--",
         color="black",
     )
-    ax_var.loglog(df["nsamp"], var, label="$\mathrm{V}[Y_h]$", marker="o")
+    ax_var.loglog(df["nsamp"], var, label="$\mathrm{V}[\hat{\mu}^{(1)}_h]$", marker="o")
+    ax_var.loglog(df["nsamp"], var_diff, label="$\mathrm{V}[\hat{\mu}^{(1)}_h - \hat{\mu}^{(1)}_{h/2}]$", marker="s")
     ax_var.set_xlim(df["nsamp"].min(), df["nsamp"].max())
     ax_var.set_xlabel("number of samples $N$")
-    ax_var.legend(loc="best")
+    ax_var.set_ylim(1e-15, 1e-3)
+    h, l = ax_var.get_legend_handles_labels()
+    h = h[1:] + [h[0]]
+    l = l[1:] + [l[0]]
+    ax_var.legend(h, l, loc="best")
 
     fn = f"nsamp_variation-nsteps_coarse={nsteps_coarse}_nseeds={nseeds}.pdf"
     fig.savefig(PLOT_DIR / fn)

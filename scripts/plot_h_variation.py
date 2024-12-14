@@ -25,7 +25,7 @@ def main(nsamp: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False)
             var += df["variance_coarse"]
 
     bias /= nseeds
-    bias_trend = bias.iloc[-1] * df["h"] / df["h"].iloc[-1]
+    bias_trend = bias.iloc[-1] * np.sqrt(df["h"]) / np.sqrt(df["h"].iloc[-1])
 
     var /= nseeds
     var_trend = var.iloc[-1] * np.ones_like(df["h"])
@@ -37,11 +37,11 @@ def main(nsamp: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False)
     ax_bias.loglog(
         df["h"],
         bias_trend,
-        label="$\mathcal{O}(h)$",
+        label="$\mathcal{O}(h^{1/2})$",
         linestyle="--",
         color="black",
     )
-    ax_bias.loglog(df["h"], df["bias"], label=r"$\mathrm{E}[Y_h - Y_{h/2}]$", marker="o")
+    ax_bias.loglog(df["h"], bias, label=r"$\mathrm{E}[Y_h - Y_{h/2}]$", marker="o")
     ax_bias.set_xlim(df["h"].min(), df["h"].max())
     ax_bias.legend(loc="best")
 

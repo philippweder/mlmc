@@ -128,6 +128,7 @@ def set_plot_style(color_style=SIAM, usetex=False):
         mpl.rcParams["legend.facecolor"] = "white"
         mpl.rcParams["legend.shadow"] = False
         mpl.rcParams["legend.fancybox"] = False
+        mpl.rcParams["legend.fontsize"] = 8
 
 
         # lines and markers
@@ -140,6 +141,7 @@ def set_plot_style(color_style=SIAM, usetex=False):
         # ticks
         mpl.rcParams["xtick.labelsize"] = 8
         mpl.rcParams["ytick.labelsize"] = 8
+        mpl.rcParams["axes.labelsize"] = 10
 
         mpl.rcParams["image.cmap"] = "inferno"
         mpl.rcParams["figure.figsize"] = HALF_SLIDE_SIZE
