@@ -160,6 +160,10 @@ def two_level_mc(
     result = {
         "esp": result_level_0["esp"] + result_level_1["esp_diff"],
         "var": result_level_0["var"] + result_level_1["var_diff"],
+        "esp0": result_level_0["esp"],
+        "var0": result_level_0["var"],
+        "esp01": result_level_1["esp_diff"],
+        "var01": result_level_1["var_diff"],
     }
 
     return result
