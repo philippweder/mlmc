@@ -46,6 +46,8 @@ def main(
         biases = np.zeros(len(nsamp_values))
         means_coarse = np.zeros(len(nsamp_values))
         variances_coarse = np.zeros(len(nsamp_values))
+        variances_fine = np.zeros(len(nsamp_values))
+        variances_diff = np.zeros(len(nsamp_values))
 
         for i, nsamp in enumerate(
             tqdm(nsamp_values, desc="Scanning sample sizes", total=len(nsamp_values))
@@ -54,6 +56,8 @@ def main(
             biases[i] = result["bias"]
             means_coarse[i] = result["esp_coarse"]
             variances_coarse[i] = result["var_coarse"]
+            variances_fine[i] = result["var_fine"]
+            variances_diff[i] = result["var_diff"]
 
         df = pd.DataFrame(
             {
@@ -61,6 +65,8 @@ def main(
                 "bias": biases,
                 "mean_coarse": means_coarse,
                 "variance_coarse": variances_coarse,
+                "variance_fine": variances_fine,
+                "variance_diff": variances_diff,
             }
         )
 
@@ -83,7 +89,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--nsteps_coarse",
         type=int,
-        default=200,
+        default=1000,
         help="Number of steps for the coarse grid",
     )
     args = parser.parse_args()

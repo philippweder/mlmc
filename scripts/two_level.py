@@ -43,6 +43,10 @@ def main(
 
         means_2l = np.zeros(len(nsamp_values))
         variances_2l = np.zeros(len(nsamp_values))
+        means_l0 = np.zeros(len(nsamp_values))
+        variances_l0 = np.zeros(len(nsamp_values))
+        means_l01 = np.zeros(len(nsamp_values))
+        variances_l01 = np.zeros(len(nsamp_values))
         means_crude = np.zeros(len(nsamp_values))
         variances_crude = np.zeros(len(nsamp_values))
         optimal_ratios = np.zeros(len(nsamp_values))
@@ -64,6 +68,10 @@ def main(
 
             means_2l[i] = result_2l["esp"]
             variances_2l[i] = result_2l["var"]
+            means_l0[i] = result_2l["esp0"]
+            variances_l0[i] = result_2l["var0"]
+            means_l01[i] = result_2l["esp01"]
+            variances_l01[i] = result_2l["var01"]
 
             # run comparable crude Monte Carlo
             ncrude = nsamp0 * int(np.ceil(0.5 + optimal_ratio))
@@ -79,6 +87,10 @@ def main(
                 "optimal_ratio": optimal_ratios,
                 "mean_2l": means_2l,
                 "variance_2l": variances_2l,
+                "mean_l0": means_l0,
+                "variance_l0": variances_l0,
+                "mean_l01": means_l01,
+                "variance_l01": variances_l01,
                 "nsamp_crude": nsamp_crudes,
                 "mean_crude": means_crude,
                 "variance_crude": variances_crude,
