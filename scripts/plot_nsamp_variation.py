@@ -43,7 +43,7 @@ def main(
     ax_bias.loglog(
         df["nsamp"],
         bias_trend,
-        label="$\mathcal{O}(N^{-1/2})$",
+        label=r"$\mathcal{O}(N^{-1/2})$",
         linestyle="--",
         color="black",
     )
@@ -57,12 +57,12 @@ def main(
     ax_var.loglog(
         df["nsamp"],
         var_trend,
-        label="$\mathcal{O}(N^{-1})$",
+        label=r"$\mathcal{O}(N^{-1})$",
         linestyle="--",
         color="black",
     )
-    ax_var.loglog(df["nsamp"], var, label="$\mathrm{V}[\hat{\mu}^{(1)}_h]$", marker="o")
-    ax_var.loglog(df["nsamp"], var_diff, label="$\mathrm{V}[\hat{\mu}^{(1)}_h - \hat{\mu}^{(1)}_{h/2}]$", marker="s")
+    ax_var.loglog(df["nsamp"], var, label=r"$\mathrm{V}[\hat{\mu}^{(1)}_h]$", marker="o")
+    ax_var.loglog(df["nsamp"], var_diff, label=r"$\mathrm{V}[\hat{\mu}^{(1)}_h - \hat{\mu}^{(1)}_{h/2}]$", marker="s")
     ax_var.set_xlim(df["nsamp"].min(), df["nsamp"].max())
     ax_var.set_xlabel("number of samples $N$")
     ax_var.set_ylim(1e-15, 1e-3)
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         description="Script to analyze the variation of the number of samples."
     )
     parser.add_argument(
-        "--nsteps_coarse", type=int, default=100, help="Number of coarse time steps"
+        "--nsteps_coarse", type=int, default=200, help="Number of coarse time steps"
     )
     parser.add_argument("--nseeds", type=int, default=1, help="Number of seeds")
     parser.add_argument(
