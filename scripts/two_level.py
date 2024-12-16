@@ -59,7 +59,7 @@ def main(
             result_pilot = coarse_fine_mc(nsamp_pilot, h_coarse, asian_option, **payoff_params)
 
             # estimate optimal sample sizes
-            optimal_ratio = np.sqrt(result_pilot["var_fine"] / (2 * result_pilot["var_coarse"]))
+            optimal_ratio = np.sqrt(result_pilot["var_diff"] / (2 * result_pilot["var_coarse"]))
             optimal_ratios[i] = optimal_ratio
             nsamp1 = int(np.ceil(optimal_ratio * nsamp0))
 
@@ -74,7 +74,7 @@ def main(
             variances_l01[i] = result_2l["var01"]
 
             # run comparable crude Monte Carlo
-            ncrude = nsamp0 * int(np.ceil(0.5 + optimal_ratio))
+            ncrude = int(np.ceil(nsamp0 * (0.5 + optimal_ratio)))
             nsamp_crudes[i] = ncrude
             result_crude = standard_mc(ncrude, 0.5 * h_coarse, asian_option, **payoff_params)
 
