@@ -9,7 +9,7 @@ from numba import jit
 # speed up computations using numba
 @jit(nopython=True)
 def simulate_path(
-    S: np.ndarray, r: float, h: float, sigma: float, dW: np.ndarray, M: int
+    S: np.ndarray, r: float, h: float, sigma: float, dW: np.ndarray, nsteps: int
 ) -> np.ndarray:
     """
     Simulates the path of a stock price using the Euler-Maruyama scheme.
@@ -20,16 +20,34 @@ def simulate_path(
     h (float): Time step size.
     sigma (float): Volatility of the stock.
     dW (numpy.ndarray): Array of increments of the Wiener process.
-    M (int): Number of time steps.
+    nsteps (int): Number of time steps.
 
     Returns:
     numpy.ndarray: Array of simulated stock prices.
     """
 
-    for m in range(M):
+    sqrt_h = np.sqrt(h)
+
+    for m in range(nsteps):
         # Update stock price using Euler-Maruyama scheme
-        S[m + 1] = S[m] + r * S[m] * h + sigma * S[m] * dW[m]
+        S[m + 1] = (1.0 + r * h + sigma * sqrt_h * dW[m]) * S[m]
     return S
+
+@jit(nopython=True)
+def batch_simulate_path(
+    S: np.ndarray, r: float, h: float, sigma: float, dW: np.ndarray, nsteps: int, nsamp: int
+) -> np.ndarray:
+    
+    nsamp = S.shape[0]
+    sqrt_h = np.sqrt(h)
+
+    for n in range(nsamp):
+        for m in range(nsteps):
+            # Update stock price using Euler-Maruyama scheme
+            S[n, m + 1] = (1.0 + r * h + sigma * sqrt_h * dW[n, m]) * S[n, m]
+
+    return S
+    
 
 
 def standard_mc(
@@ -42,16 +60,12 @@ def standard_mc(
     sigma = payoff_kwargs["sigma"]
     nsteps = int(T / h)
 
-    # Pre-allocate storage for the payoffs
-    payoffs = np.zeros(nsamp)
-
-    # Simulate N independent paths of the geometric Brownian motion
-    for n in tqdm(range(nsamp), desc="Simulating Paths"):
-        S = np.zeros(nsteps + 1)
-        S[0] = S0
-        dW = np.random.normal(0, np.sqrt(h), size=nsteps)
-        S = simulate_path(S, r, h, sigma, dW, nsteps)
-        payoffs[n] = payoff(S, h, **payoff_kwargs)
+    S = np.zeros((nsamp, nsteps + 1))
+    S[:, 0] = S0
+    dW = np.random.standard_normal((nsamp, nsteps))
+    S = batch_simulate_path(S, r, h, sigma, dW, nsteps, nsamp)
+    payoffs_vec = np.vectorize(lambda s: payoff(s, h, **payoff_kwargs), signature="(n,m) ->(n)")
+    payoffs = payoffs_vec(S)
 
     result = {
         "esp": np.mean(payoffs),
@@ -89,40 +103,24 @@ def coarse_fine_mc(
     M_coarse = int(T / h_coarse)
     M_fine = int(T / h_fine)
 
-    # Pre-allocate storage for the payoffs
-    payoffs_coarse = np.zeros(
-        nsamp
-    )  # Array to store the payoffs for each path, coarse time grid
-    payoffs_fine = np.zeros(
-        nsamp
-    )  # Array to store the payoffs for each path, finer time grid
+    S_fine = np.zeros((nsamp, M_fine + 1))
+    S_fine[:, 0] = S0
 
-    # Simulate N independent paths of the geometric Brownian motion
-    for n in tqdm(
-        range(nsamp), desc="Simulating Paths"
-    ):  # Add progress bar for the loop
-        S_fine = np.zeros(
-            M_fine + 1
-        )  # Array to store the asset prices for a single path
-        S_fine[0] = S0  # Initial stock price
-        S_coarse = np.zeros(M_coarse + 1)
-        S_coarse[0] = S0
+    S_coarse = np.zeros((nsamp, M_coarse + 1))
+    S_coarse[:, 0] = S0
 
-        # Obtain the Brownian increments on the fine grid
-        dW_fine = np.random.normal(0, np.sqrt(h_fine), size=M_fine)
+    dW_fine = np.random.standard_normal(size=(nsamp, M_fine))
+    S_fine = batch_simulate_path(S_fine, r, h_fine, sigma, dW_fine, M_fine, nsamp)
 
-        # Simulate the path using the Euler-Maruyama scheme, first on the finer grid
-        S_fine = simulate_path(S_fine, r, h_fine, sigma, dW_fine, M_fine)
 
-        # Sum the Brownian increments to create coarser grid increments
-        dW_coarse = np.add.reduceat(dW_fine, np.arange(0, M_fine, 2))
+    payoff_vec = np.vectorize(lambda s, h: payoff(s, h, **payoff_kwargs), signature="(n,m),() ->(n)")
+    payoffs_fine = payoff_vec(S_fine, h_fine)
 
-        # Simulate the path now on the coarse grid
-        S_coarse = simulate_path(S_coarse, r, h_coarse, sigma, dW_coarse, M_coarse)
+    # dW_coarse = np.add.reduceat(dW_fine, np.arange(0, M_fine, 2), axis=1) / np.sqrt(2.0)
+    dW_coarse = (dW_fine[:, 0::2] + dW_fine[:, 1::2]) / np.sqrt(2.0)
+    S_coarse = batch_simulate_path(S_coarse, r, h_coarse, sigma, dW_coarse, M_coarse, nsamp)
 
-        # Calculate the payoff for the fine and coarse paths
-        payoffs_fine[n] = payoff(S_fine, h_fine, **payoff_kwargs)
-        payoffs_coarse[n] = payoff(S_coarse, h_coarse, **payoff_kwargs)
+    payoffs_coarse = payoff_vec(S_coarse, h_coarse)
 
     result = {
         "esp_coarse": np.mean(payoffs_coarse),
@@ -138,7 +136,7 @@ def coarse_fine_mc(
 
 
 def two_level_mc(
-    nsamp0: int, nsamp1: int, h_coarse: float, payoff: Callable, **payoff_params
+    nsamp0: int, nsamp1: int, h_coarse: float, payoff: Callable, **payoff_kwargs
 ) -> Dict[str, float]:
     """
     Perform a two-level Monte Carlo estimation.
@@ -152,10 +150,10 @@ def two_level_mc(
     Dict[str, float]: A dictionary containing the estimated expected value ('esp') and variance ('var').
     """
 
-    result_level_0 = standard_mc(nsamp0, h_coarse, payoff, **payoff_params)
+    result_level_0 = standard_mc(nsamp0, h_coarse, payoff, **payoff_kwargs)
 
     # level 1 estimate
-    result_level_1 = coarse_fine_mc(nsamp1, h_coarse, payoff, **payoff_params)
+    result_level_1 = coarse_fine_mc(nsamp1, h_coarse, payoff, **payoff_kwargs)
 
     result = {
         "esp": result_level_0["esp"] + result_level_1["esp_diff"],
