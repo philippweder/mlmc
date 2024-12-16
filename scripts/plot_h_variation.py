@@ -48,11 +48,11 @@ def main(nsamp: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False)
     ax_var.loglog(
         df["h"],
         var_trend,
-        label="$\mathcal{O}(1)$",
+        label=r"$\mathcal{O}(1)$",
         linestyle="--",
         color="black",
     )
-    ax_var.loglog(df["h"], var, label="$\mathrm{V}[Y_h]$", marker="o")
+    ax_var.loglog(df["h"], var, label=r"$\mathrm{V}[Y_h]$", marker="o")
     ax_var.set_xlim(df["h"].min(), df["h"].max())
     ax_var.set_xlabel("time step size $h$")
     ax_var.legend(loc="best")
@@ -77,3 +77,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.nsamp, args.nseeds, args.style, args.usetex)
+    

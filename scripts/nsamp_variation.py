@@ -89,7 +89,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--nsteps_coarse",
         type=int,
-        default=1000,
+        default=200,
         help="Number of steps for the coarse grid",
     )
     args = parser.parse_args()

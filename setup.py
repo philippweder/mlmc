@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='your_package_name',       # Replace with your package name
+    name='mlmc',       # Replace with your package name
     version='0.1',                  # Package version
     author='Your Name',             # Author name
     author_email='your@email.com',  # Author email
