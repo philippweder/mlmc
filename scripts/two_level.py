@@ -56,15 +56,21 @@ def main(
 
             # pilot run
             h_coarse = 0.2
-            result_pilot = coarse_fine_mc(nsamp_pilot, h_coarse, asian_option, **payoff_params)
+            result_pilot = coarse_fine_mc(
+                nsamp_pilot, h_coarse, asian_option, **payoff_params
+            )
 
             # estimate optimal sample sizes
-            optimal_ratio = np.sqrt(result_pilot["var_diff"] / (2 * result_pilot["var_coarse"]))
+            optimal_ratio = np.sqrt(
+                result_pilot["var_diff"] / (2 * result_pilot["var_coarse"])
+            )
             optimal_ratios[i] = optimal_ratio
             nsamp1 = int(np.ceil(optimal_ratio * nsamp0))
 
             # run two-level Monte Carlo
-            result_2l = two_level_mc(nsamp0, nsamp1, h_coarse, asian_option, **payoff_params)
+            result_2l = two_level_mc(
+                nsamp0, nsamp1, h_coarse, asian_option, **payoff_params
+            )
 
             means_2l[i] = result_2l["esp"]
             variances_2l[i] = result_2l["var"]
@@ -76,7 +82,9 @@ def main(
             # run comparable crude Monte Carlo
             ncrude = int(np.ceil(nsamp0 * (0.5 + optimal_ratio)))
             nsamp_crudes[i] = ncrude
-            result_crude = standard_mc(ncrude, 0.5 * h_coarse, asian_option, **payoff_params)
+            result_crude = standard_mc(
+                ncrude, 0.5 * h_coarse, asian_option, **payoff_params
+            )
 
             means_crude[i] = result_crude["esp"]
             variances_crude[i] = result_crude["var"]
@@ -101,12 +109,42 @@ def main(
         df.to_csv(out_path, index=False)
         print(f"Results saved to {out_path}")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Script to analyze the variance reduction achieved by the 2-level estimator.")
-    parser.add_argument("--nsamp_min", "-min", default=10, type=int, help="Minimum number of samples.")
-    parser.add_argument("--nsamp_max", "-max", default=100_000, type=int, help="Maximum number of samples.")
-    parser.add_argument("--nsamp_base", "-b", default=10, type=int, help="Base for the number of samples.")
+    parser = argparse.ArgumentParser(
+        description="Script to analyze the variance reduction achieved by the 2-level estimator."
+    )
+    parser.add_argument(
+        "--nsamp_min", "-min", default=10, type=int, help="Minimum number of samples."
+    )
+    parser.add_argument(
+        "--nsamp_max",
+        "-max",
+        default=100_000,
+        type=int,
+        help="Maximum number of samples.",
+    )
+    parser.add_argument(
+        "--nsamp_base",
+        "-b",
+        default=10,
+        type=int,
+        help="Base for the number of samples.",
+    )
     parser.add_argument("--nseeds", "-s", type=int, default=1, help="Number of seeds.")
-    parser.add_argument("--nsamp_pilot", "-p", default=1_000, type=int, help="Number of samples for the pilot run.")
+    parser.add_argument(
+        "--nsamp_pilot",
+        "-p",
+        default=1_000,
+        type=int,
+        help="Number of samples for the pilot run.",
+    )
     args = parser.parse_args()
-    main(args.nsamp_min, args.nsamp_max, args.nsamp_base, args.nsamp_pilot, DATA_DIR, args.nseeds)
+    main(
+        args.nsamp_min,
+        args.nsamp_max,
+        args.nsamp_base,
+        args.nsamp_pilot,
+        DATA_DIR,
+        args.nseeds,
+    )

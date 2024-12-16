@@ -1,8 +1,5 @@
-# function standard MC on N realisations, for time step h (which will be compared
-# to time step h/2 for the bias):
 import numpy as np
-from tqdm import tqdm
-from typing import Dict, Callable, Tuple
+from typing import Dict, Callable, List
 from numba import jit
 
 
@@ -162,6 +159,42 @@ def two_level_mc(
         "var0": result_level_0["var"],
         "esp01": result_level_1["esp_diff"],
         "var01": result_level_1["var_diff"],
+    }
+
+    return result
+
+
+def mlmc(nsamps: List[int], h_coarse: float, payoff: Callable, **payoff_kwargs) -> Dict[str, float]:
+    """
+    Perform a multi-level Monte Carlo estimation.
+    Parameters:
+    nsamp0 (int): Number of samples for the coarse level.
+    h_coarse (float): Coarse level discretization parameter.
+    payoff (Callable): Payoff function to be evaluated.
+    **payoff_params: Additional parameters to be passed to the payoff function.
+    Returns:
+    Dict[str, float]: A dictionary containing the estimated expected value ('esp') and variance ('var').
+    """
+
+    h_values = [h_coarse / 2 ** i for i in range(len(nsamps))]
+
+    level_means = np.zeros(len(nsamps))
+    level_vars = np.zeros(len(nsamps))
+
+    for l, (h, nsamp) in enumerate(zip(h_values, nsamps)):
+        level_result = coarse_fine_mc(nsamp, h, payoff, **payoff_kwargs)
+
+        if l == 0:
+            level_means[l] = level_result["esp_coarse"]
+            level_vars[l] = level_result["var_coarse"]
+
+        else:
+            level_means[l] = level_result["esp_diff"]
+            level_vars[l] = level_result["var_diff"]
+
+    result = {
+        "esp": np.sum(level_means),
+        "var": np.sum(level_vars),
     }
 
     return result
