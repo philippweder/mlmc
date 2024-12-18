@@ -11,12 +11,12 @@ PLOT_DIR = Path("../plots/asian_option")
 PLOT_DIR.mkdir(exist_ok=True, parents=True)
 
 
-def main(nsamp: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False) -> None:
+def main(
+    nsamp: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False
+) -> None:
 
     for nseed in range(nseeds):
-        df = pd.read_csv(
-            DATA_DIR / f"h_variation_nsamp={nsamp}_seed={nseed}.csv"
-        )
+        df = pd.read_csv(DATA_DIR / f"h_variation_nsamp={nsamp}_seed={nseed}.csv")
         if nseed == 0:
             bias = df["bias"]
             var = df["variance_coarse"]
@@ -31,8 +31,8 @@ def main(nsamp: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False)
     var_trend = var.iloc[-1] * np.ones_like(df["h"])
 
     set_plot_style(style, usetex)
-    fig, (ax_bias, ax_var) = plt.subplots(
-        2, 1, figsize=(LINEWIDTH_SIZE[0], 4), layout="constrained", sharex=True
+    fig_bias, ax_bias = plt.subplots(
+        1, 1, figsize=LINEWIDTH_SIZE, layout="constrained", sharex=True
     )
     ax_bias.loglog(
         df["h"],
@@ -41,9 +41,25 @@ def main(nsamp: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False)
         linestyle="--",
         color="black",
     )
-    ax_bias.loglog(df["h"], bias, label=r"$\mathrm{E}[Y_h - Y_{h/2}]$", marker="o")
-    ax_bias.set_xlim(df["h"].min(), df["h"].max())
-    ax_bias.legend(loc="best")
+    ax_bias.loglog(
+        df["h"],
+        bias,
+        label=r"$|\hat{\mu}_h - \hat{\mu}_{h/2}|$",
+        marker="o",
+    )
+    h, l = ax_bias.get_legend_handles_labels()
+    h = [h[1], h[0]]
+    l = [l[1], l[0]]
+    ax_bias.legend(h, l, loc="best")
+    ax_bias.set_xlabel("time step size $h$")
+
+    fn = f"h_variation-bias-nsamp={nsamp}_nseeds={nseeds}.pdf"
+    fig_bias.savefig(PLOT_DIR / fn)
+    print(f"Plot saved to {PLOT_DIR / fn}")
+
+    fig_var, ax_var = plt.subplots(
+        1, 1, figsize=LINEWIDTH_SIZE, layout="constrained", sharex=True
+    )
 
     ax_var.loglog(
         df["h"],
@@ -52,13 +68,15 @@ def main(nsamp: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False)
         linestyle="--",
         color="black",
     )
-    ax_var.loglog(df["h"], var, label=r"$\mathrm{V}[Y_h]$", marker="o")
-    ax_var.set_xlim(df["h"].min(), df["h"].max())
+    ax_var.loglog(df["h"], var, label=r"$\mathbb{V}[Y_h]$", marker="o")
     ax_var.set_xlabel("time step size $h$")
-    ax_var.legend(loc="best")
+    h, l = ax_var.get_legend_handles_labels()
+    h = [h[1], h[0]]
+    l = [l[1], l[0]]
+    ax_var.legend(h, l, loc="best")
 
-    fn = f"h_variation-nsamp={nsamp}_nseeds={nseeds}.pdf"
-    fig.savefig(PLOT_DIR / fn)
+    fn = f"h_variation-variance-nsamp={nsamp}_nseeds={nseeds}.pdf"
+    fig_var.savefig(PLOT_DIR / fn)
     print(f"Plot saved to {PLOT_DIR / fn}")
 
 
@@ -77,4 +95,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.nsamp, args.nseeds, args.style, args.usetex)
-    
