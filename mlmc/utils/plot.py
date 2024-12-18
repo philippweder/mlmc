@@ -141,7 +141,7 @@ def set_plot_style(color_style=SIAM, usetex=False):
         # ticks
         mpl.rcParams["xtick.labelsize"] = 8
         mpl.rcParams["ytick.labelsize"] = 8
-        mpl.rcParams["axes.labelsize"] = 10
+        mpl.rcParams["axes.labelsize"] = 8
 
         mpl.rcParams["image.cmap"] = "inferno"
         mpl.rcParams["figure.figsize"] = HALF_SLIDE_SIZE
