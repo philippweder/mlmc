@@ -37,8 +37,8 @@ def main(
     var_diff /= nseeds
 
     set_plot_style(style, usetex)
-    fig, (ax_bias, ax_var) = plt.subplots(
-        2, 1, figsize=(LINEWIDTH_SIZE[0], 4), layout="constrained", sharex=True
+    fig_bias, ax_bias = plt.subplots(
+        1, 1, figsize=LINEWIDTH_SIZE, layout="constrained", sharex=True
     )
     ax_bias.loglog(
         df["nsamp"],
@@ -47,13 +47,25 @@ def main(
         linestyle="--",
         color="black",
     )
-    ax_bias.loglog(df["nsamp"], bias, label=r"$|\hat{\mu}^{(1)}_h - \hat{\mu}^{(1)}_{h/2}|$", marker="o")
-    ax_bias.set_xlim(df["nsamp"].min(), df["nsamp"].max())
+    ax_bias.loglog(
+        df["nsamp"],
+        bias,
+        label=r"$|\hat{\mu}^{(1)}_h - \hat{\mu}^{(1)}_{h/2}|$",
+        marker="o",
+    )
+    # ax_bias.set_xlim(df["nsamp"].min(), df["nsamp"].max())
+    ax_bias.set_xlabel("number of samples $N$")
     h, l = ax_bias.get_legend_handles_labels()
     h = h[1:] + [h[0]]
     l = l[1:] + [l[0]]
     ax_bias.legend(h, l, loc="best")
 
+    fn = f"nsamp_variation-bias-nsteps_coarse={nsteps_coarse}_nseeds={nseeds}.pdf"
+    fig_bias.savefig(PLOT_DIR / fn)
+    print(f"Plot saved to {PLOT_DIR / fn}")
+
+    fig_var = plt.figure(figsize=LINEWIDTH_SIZE, layout="constrained")
+    ax_var = fig_var.subplots(1, 1)
     ax_var.loglog(
         df["nsamp"],
         var_trend,
@@ -61,18 +73,18 @@ def main(
         linestyle="--",
         color="black",
     )
-    ax_var.loglog(df["nsamp"], var, label=r"$\mathrm{V}[\hat{\mu}^{(1)}_h]$", marker="o")
-    ax_var.loglog(df["nsamp"], var_diff, label=r"$\mathrm{V}[\hat{\mu}^{(1)}_h - \hat{\mu}^{(1)}_{h/2}]$", marker="s")
-    ax_var.set_xlim(df["nsamp"].min(), df["nsamp"].max())
+    ax_var.loglog(
+        df["nsamp"], var, label=r"$\mathbb{V}[\hat{\mu}^{(1)}_h]$", marker="o"
+    )
+    # ax_var.set_xlim(df["nsamp"].min(), df["nsamp"].max())
     ax_var.set_xlabel("number of samples $N$")
-    ax_var.set_ylim(1e-15, 1e-3)
     h, l = ax_var.get_legend_handles_labels()
     h = h[1:] + [h[0]]
     l = l[1:] + [l[0]]
     ax_var.legend(h, l, loc="best")
 
-    fn = f"nsamp_variation-nsteps_coarse={nsteps_coarse}_nseeds={nseeds}.pdf"
-    fig.savefig(PLOT_DIR / fn)
+    fn = f"nsamp_variation-variance-nsteps_coarse={nsteps_coarse}_nseeds={nseeds}.pdf"
+    fig_var.savefig(PLOT_DIR / fn)
     print(f"Plot saved to {PLOT_DIR / fn}")
 
 
