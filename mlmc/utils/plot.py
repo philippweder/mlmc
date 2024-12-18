@@ -79,7 +79,7 @@ TWO_THIRD_SLIDE_SIZE = (5.7, 4.6)
 HALF_SLIDE_SIZE = (4.74, 4.6)
 
 # report sizes
-LINEWIDTH_SIZE = (3.5, 2)
+LINEWIDTH_SIZE = (3.5, 1.5)
 
 # poster sizes
 FULL_COL_SIZE = (14.1, 8.41)
@@ -135,7 +135,7 @@ def set_plot_style(color_style=SIAM, usetex=False):
         mpl.rcParams["lines.linewidth"] = 1.0
         mpl.rcParams["lines.markeredgewidth"] = 0.5
         mpl.rcParams["lines.markeredgecolor"] = "black"
-        mpl.rcParams["lines.markersize"] = 5
+        mpl.rcParams["lines.markersize"] = 4
         mpl.rcParams["scatter.edgecolors"] = "black"
 
         # ticks
@@ -157,7 +157,7 @@ def set_plot_style(color_style=SIAM, usetex=False):
         mpl.rcParams["lines.linewidth"] = 1.0
         mpl.rcParams["lines.markeredgecolor"] = EPFL_NEUTRALS[0]
         mpl.rcParams["lines.markeredgewidth"] = 0.5
-        mpl.rcParams["lines.markersize"] = 6.0
+        mpl.rcParams["lines.markersize"] = 4.0
 
         # legend
         mpl.rcParams["legend.frameon"] = False
@@ -170,6 +170,6 @@ def set_plot_style(color_style=SIAM, usetex=False):
         mpl.rcParams["ytick.color"] = EPFL_NEUTRALS[0]
 
     if usetex:
-        mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath}'
+        mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath, amssymb}'
         mpl.rcParams["text.usetex"] = usetex
         mpl.rcParams["font.family"] = "serif"
