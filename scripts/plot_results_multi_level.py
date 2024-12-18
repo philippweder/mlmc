@@ -23,9 +23,6 @@ def main(eps_min: float, eps_max:float, nsamp_pilot: int=int(50000), nlevels_pil
     variance = df["variance"]  #this is var(Yl - Yl-1)/nsamp
     Nlevels = df["nlevels"] #number of levels used for the run
     N0 = df["N0"] #number of samples needed at first level l=0
-   
-    global test
-    test = cpu_time
     
     # Make figures:
     set_plot_style(style, usetex)
@@ -57,7 +54,7 @@ def main(eps_min: float, eps_max:float, nsamp_pilot: int=int(50000), nlevels_pil
     print(f"Plot saved to {PLOT_DIR / fn}")
     
 
-argParse = 1 #set to zero if you run the file from an IDE, to 1 to run from command line 
+argParse = 0 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
 
 if argParse:
@@ -82,7 +79,7 @@ else:
     if __name__ == "__main__":
     
         main(
-            eps_min=5e-7,
+            eps_min=1e-6,
             eps_max=1e-4,
         )
 

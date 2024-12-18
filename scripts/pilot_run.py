@@ -59,7 +59,6 @@ def main(
 
 
 
-
 argParse = 1 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
 if argParse:

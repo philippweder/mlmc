@@ -82,7 +82,7 @@ def main(
         
         optimal_nlevels = int(np.ceil(np.log2(E0 / eps)))
         optimal_nsamps = [
-            int(np.ceil(2 ** (-2*l) * (optimal_nlevels + 1) * V0**(3/2) / eps**2))
+            int(np.ceil(2 **(-2*l) * (optimal_nlevels + 1) * V0 / eps**2))
             for l in range(optimal_nlevels)
         ]
         
@@ -123,7 +123,7 @@ def main(
     df.to_csv(out_path, index=False)
     print(f"Results saved to {out_path}")
 
-argParse = 1 #set to zero if you run the file from an IDE, to 1 to run from command line 
+argParse = 0 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
 
 if argParse:
@@ -172,7 +172,7 @@ else:
     if __name__ == "__main__":
 
         main(
-            eps_min=5e-7,
+            eps_min=1e-6,
             eps_max=1e-4,
             eps_base=10,
             need_pilot_run=0, 
