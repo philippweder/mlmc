@@ -8,20 +8,6 @@ from numba import jit
 def simulate_path(
     S: np.ndarray, r: float, h: float, sigma: float, dW: np.ndarray, nsteps: int
 ) -> np.ndarray:
-    """
-    Simulates the path of a stock price using the Euler-Maruyama scheme.
-
-    Parameters:
-    S (numpy.ndarray): Array of stock prices, where S[0] is the initial stock price.
-    r (float): Risk-free interest rate.
-    h (float): Time step size.
-    sigma (float): Volatility of the stock.
-    dW (numpy.ndarray): Array of increments of the Wiener process.
-    nsteps (int): Number of time steps.
-
-    Returns:
-    numpy.ndarray: Array of simulated stock prices.
-    """
 
     sqrt_h = np.sqrt(h)
 
@@ -30,11 +16,18 @@ def simulate_path(
         S[m + 1] = (1.0 + r * h + sigma * sqrt_h * dW[m]) * S[m]
     return S
 
+
 @jit(nopython=True)
 def batch_simulate_path(
-    S: np.ndarray, r: float, h: float, sigma: float, dW: np.ndarray, nsteps: int, nsamp: int
+    S: np.ndarray,
+    r: float,
+    h: float,
+    sigma: float,
+    dW: np.ndarray,
+    nsteps: int,
+    nsamp: int,
 ) -> np.ndarray:
-    
+
     nsamp = S.shape[0]
     sqrt_h = np.sqrt(h)
 
@@ -44,7 +37,6 @@ def batch_simulate_path(
             S[n, m + 1] = (1.0 + r * h + sigma * sqrt_h * dW[n, m]) * S[n, m]
 
     return S
-    
 
 
 def standard_mc(
@@ -61,7 +53,9 @@ def standard_mc(
     S[:, 0] = S0
     dW = np.random.standard_normal((nsamp, nsteps))
     S = batch_simulate_path(S, r, h, sigma, dW, nsteps, nsamp)
-    payoffs_vec = np.vectorize(lambda s: payoff(s, h, **payoff_kwargs), signature="(n,m) ->(n)")
+    payoffs_vec = np.vectorize(
+        lambda s: payoff(s, h, **payoff_kwargs), signature="(n,m) ->(n)"
+    )
     payoffs = payoffs_vec(S)
 
     result = {
@@ -75,19 +69,6 @@ def standard_mc(
 def coarse_fine_mc(
     nsamp: int, h_coarse: float, payoff: Callable, **payoff_kwargs
 ) -> Dict[str, float]:
-    """
-    Perform standard Monte Carlo simulation for an Asian option using geometric Brownian motion.
-
-    Parameters:
-    S0 (float): Initial stock price.
-    sigma (float): Volatility of the stock.
-    T (float): Time to maturity of the option.
-    nsamp (int): Number of Monte Carlo samples.
-    h_coarse (float): Time step size for the coarse grid.
-
-    Returns:
-    Dict[str, float]: A dictionary containing the results
-    """
 
     # Extract payoff parameters needed for path simulation
     S0 = payoff_kwargs["S0"]
@@ -98,7 +79,7 @@ def coarse_fine_mc(
     # define the finer grid to estimate the bias:
     h_fine = h_coarse / 2
     M_coarse = int(T / h_coarse)
-    M_fine = int(T / h_fine)
+    M_fine = 2 * M_coarse
 
     S_fine = np.zeros((nsamp, M_fine + 1))
     S_fine[:, 0] = S0
@@ -109,13 +90,16 @@ def coarse_fine_mc(
     dW_fine = np.random.standard_normal(size=(nsamp, M_fine))
     S_fine = batch_simulate_path(S_fine, r, h_fine, sigma, dW_fine, M_fine, nsamp)
 
-
-    payoff_vec = np.vectorize(lambda s, h: payoff(s, h, **payoff_kwargs), signature="(n,m),() ->(n)")
+    payoff_vec = np.vectorize(
+        lambda s, h: payoff(s, h, **payoff_kwargs), signature="(n,m),() ->(n)"
+    )
     payoffs_fine = payoff_vec(S_fine, h_fine)
 
     # dW_coarse = np.add.reduceat(dW_fine, np.arange(0, M_fine, 2), axis=1) / np.sqrt(2.0)
     dW_coarse = (dW_fine[:, 0::2] + dW_fine[:, 1::2]) / np.sqrt(2.0)
-    S_coarse = batch_simulate_path(S_coarse, r, h_coarse, sigma, dW_coarse, M_coarse, nsamp)
+    S_coarse = batch_simulate_path(
+        S_coarse, r, h_coarse, sigma, dW_coarse, M_coarse, nsamp
+    )
 
     payoffs_coarse = payoff_vec(S_coarse, h_coarse)
 
@@ -164,7 +148,9 @@ def two_level_mc(
     return result
 
 
-def mlmc(nsamps: List[int], h_coarse: float, payoff: Callable, **payoff_kwargs) -> Dict[str, float]:
+def mlmc(
+    nsamps: List[int], h_coarse: float, payoff: Callable, **payoff_kwargs
+) -> Dict[str, float]:
     """
     Perform a multi-level Monte Carlo estimation.
     Parameters:
@@ -176,7 +162,7 @@ def mlmc(nsamps: List[int], h_coarse: float, payoff: Callable, **payoff_kwargs) 
     Dict[str, float]: A dictionary containing the estimated expected value ('esp') and variance ('var').
     """
 
-    h_values = [h_coarse / 2 ** i for i in range(len(nsamps))]
+    h_values = [h_coarse / 2**i for i in range(len(nsamps))]
 
     level_means = np.zeros(len(nsamps))
     level_vars = np.zeros(len(nsamps))
