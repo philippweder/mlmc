@@ -176,11 +176,11 @@ def mlmc(
 
         else:
             level_means[l] = level_result["esp_diff"]
-            level_vars[l] = level_result["var_diff"]
+            level_vars[l] = level_result["var_diff"] #this is Var(Yl - Yl-1)/nsamp
 
     result = {
         "esp": np.sum(level_means),
-        "var": np.sum(level_vars),
+        "var": np.sum(level_vars), #this is Var(Yl - Yl-1)/nsamp
     }
 
     return result
