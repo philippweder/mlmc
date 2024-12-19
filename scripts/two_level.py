@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 from mlmc.core.estimators import two_level_mc
 from mlmc.core.payoff import asian_option
@@ -52,7 +53,7 @@ def main(
         optimal_ratios = np.zeros(len(nsamp_values))
         nsamp_crudes = np.zeros(len(nsamp_values))
 
-        for i, nsamp0 in enumerate(nsamp_values):
+        for i, nsamp0 in tqdm(enumerate(nsamp_values), total=len(nsamp_values)):
 
             # pilot run
             h_coarse = 0.2
