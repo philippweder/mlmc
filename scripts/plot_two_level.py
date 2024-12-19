@@ -3,6 +3,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import logging
 
 from mlmc.utils.plot import set_plot_style, NATURE, STYLES, LINEWIDTH_SIZE
 
@@ -10,6 +11,8 @@ DATA_DIR = Path("../data/asian_option")
 PLOT_DIR = Path("../plots/asian_option")
 PLOT_DIR.mkdir(exist_ok=True, parents=True)
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 def main(
     nsamp_pilot: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False
@@ -27,10 +30,6 @@ def main(
             mean_crude = df["mean_crude"]
             var_crude = df["variance_crude"]
 
-            V0_pilot = df["V0_pilot"]
-            V1_pilot = df["V1_pilot"]
-            V_crude = df["V_crude"]
-
         else:
             optimal_ratio += df["optimal_ratio"]
             mean_2l += df["mean_2l"]
@@ -39,10 +38,6 @@ def main(
             mean_crude += df["mean_crude"]
             var_crude += df["variance_crude"]
 
-            V0_pilot += df["V0_pilot"]
-            V1_pilot += df["V1_pilot"]
-            V_crude += df["V_crude"]
-
     optimal_ratio /= nseeds
     mean_2l /= nseeds
     var_2l /= nseeds
@@ -50,66 +45,58 @@ def main(
     mean_crude /= nseeds
     var_crude /= nseeds
 
-    V0_pilot /= nseeds
-    V1_pilot /= nseeds
-    V_crude /= nseeds
+
+    mean_ratio = np.mean(optimal_ratio)
+    std_ratio = np.std(optimal_ratio)
+    logger.info(f"Mean optimal ratio: {mean_ratio:.4f}±{std_ratio:.4f}")
+
+    final_nsamp = df["nsamp"].iloc[-1]
+    final_var_2l = var_2l.iloc[-1]
+    final_var_crude = var_crude.iloc[-1]
+    logger.info(f"Final number of coarse samples: {final_nsamp}")
+    logger.info(f"Final variance (2-level): {final_var_2l:.3e}")
+    logger.info(f"Final variance (crude): {final_var_crude:.3e}")
+
 
     set_plot_style(style, usetex)
-    fig, ((ax_eff, ax_nsamp), (ax_cost, ax_mean)) = plt.subplots(
-        2, 2, figsize=(2 * LINEWIDTH_SIZE[0], 4), layout="constrained", sharex=True
-    )
+    fig_conv = plt.figure(figsize=LINEWIDTH_SIZE, constrained_layout=True)
+    ax_conv = fig_conv.subplots(1, 1)
+    ax_conv.fill_between(df["nsamp"], mean_2l - np.sqrt(var_2l), mean_2l + np.sqrt(var_2l), alpha=0.3)
+    ax_conv.loglog(df["nsamp"], mean_2l, label="$\hat{\mu}_h^{(2)}$", marker="o")
 
-    ax_eff.loglog(
-        df["nsamp"],
-        var_2l / var_crude,
-        label="$\mathrm{V}[\hat{\mu}_{h}^{(2)}] / \mathrm{V}[\hat{\mu}_{h/2}^{\mathrm{crude}}] $",
-        marker="o",
-    )
+    ax_conv.fill_between(df["nsamp"], mean_crude - np.sqrt(var_crude), mean_crude + np.sqrt(var_crude), alpha=0.3)
+    ax_conv.loglog(df["nsamp"], mean_crude, label="$\hat{\mu}_h^{\mathrm{MC}}$", marker="o")
+    ax_conv.set_xlabel("coarse samples $N_0$")
+    ax_conv.legend(loc="best")
 
-    ax_eff.set_xlim(df["nsamp"].min(), df["nsamp"].max())
-    ax_eff.legend(loc="best")
+    fn = PLOT_DIR / f"two_level-conv_nsamp_pilot={nsamp_pilot}_nseeds={nseeds}.pdf"
+    fig_conv.savefig(fn)
+    print(f"Saved figure to {fn}")
 
-    ax_nsamp.loglog(df["nsamp"], df["nsamp"], label="$N_0$", ls="--", color="black")
-    ax_nsamp.loglog(df["nsamp"], nsamp_crude, label="$N_c$", marker="o")
-    # ax_nsamp.loglog(df["nsamp"], optimal_ratio * df["nsamp"], label="$N_1$", marker="s")
-    # ax_nsamp.loglog(df["nsamp"], (1 + optimal_ratio) * df["nsamp"], label="$N_0 + N_1$", marker="d")
+    fig_var = plt.figure(figsize=(LINEWIDTH_SIZE[0] * 0.6, LINEWIDTH_SIZE[1]), constrained_layout=True)
+    ax_var = fig_var.subplots(1, 1)
+    ax_var.semilogx(df["nsamp"], 0.5*np.ones_like(df["nsamp"]), label="0.5", linestyle="--", color="black")
+    ax_var.semilogx(df["nsamp"], var_2l / var_crude, marker="o", label="$\mathbb{V}[\hat{\mu}_h^{(2)}] / \mathbb{V}[\hat{\mu}_h^{\mathrm{MC}}]$")
+    ax_var.set_ylim([0.3, 0.7])
+    ax_var.set_xlabel("coarse samples $N_0$")
+    h, l = ax_var.get_legend_handles_labels()
+    ax_var.legend(h[::-1], l[::-1], loc="lower left", ncols=1)
+
+    fn = PLOT_DIR / f"two_level-var_nsamp_pilot={nsamp_pilot}_nseeds={nseeds}.pdf"
+    fig_var.savefig(fn)
+    print(f"Saved figure to {fn}")
+
+    fig_ratio = plt.figure(figsize=(LINEWIDTH_SIZE[0] * 0.4, LINEWIDTH_SIZE[1]), constrained_layout=True)
+    ax_ratio = fig_ratio.subplots(1, 1)
+    ax_ratio.boxplot(optimal_ratio,
+                    showmeans=True,
+                    meanprops = {"markerfacecolor": "black", "markeredgecolor": "black"},
+                    medianprops = {"color": "black"})
+    ax_ratio.set_xticks([])
     
-    ax_nsamp.set_xlim(df["nsamp"].min(), df["nsamp"].max())
-    # ax_nsamp.set_xlabel("number of coarse samples $N_0$")
-    ax_nsamp.legend(loc="best")
-
-    ax_cost.loglog(df["nsamp"], np.ones_like(df["nsamp"]), label="$1$", ls="--", color="black")
-    ax_cost.loglog(df["nsamp"], optimal_ratio, label="optimal ratio", marker="o")
-    ax_cost.set_xlim(df["nsamp"].min(), df["nsamp"].max())
-    ax_cost.set_xlabel("number of coarse samples $N_0$")
-    ax_cost.legend(loc="best")
-
-    ax_mean.loglog(df["nsamp"], mean_2l, label="$\hat{\mu}_h^{(2)}$", marker="o")
-    ax_mean.loglog(df["nsamp"], mean_crude, label="$\hat{\mu}_{h/2}^{\mathrm{crude}}$", marker="s")
-    ax_mean.set_xlim(df["nsamp"].min(), df["nsamp"].max())
-    ax_mean.set_xlabel("number of coarse samples $N_0$")
-    ax_mean.legend(loc="best")
-
-    fn = f"two-level_nsamp_pilot={nsamp_pilot}_nseeds={nseeds}.pdf"
-    fig.savefig(PLOT_DIR / fn)
-    print(f"Plot saved to {PLOT_DIR / fn}")
-
-    fig = plt.figure(layout="constrained", figsize=(LINEWIDTH_SIZE[0], 4))
-    ax_ratio, ax_pilot = fig.subplots(2, 1, sharex=True)
-    ax_ratio.semilogy(df["nsamp"], V0_pilot / V_crude, label="$V_0 / \\tilde{V}_0$", marker="o")
-    ax_ratio.set_xlim(df["nsamp"].min(), df["nsamp"].max())
-    ax_ratio.legend(loc="best")
-    
-    ax_pilot.loglog(df["nsamp"], V0_pilot, label="$V_0$", marker="o")
-    ax_pilot.loglog(df["nsamp"], V1_pilot, label="$V_1$", marker="s")
-    ax_pilot.set_xlim(df["nsamp"].min(), df["nsamp"].max())
-    ax_pilot.legend(loc="best")
-    ax_pilot.set_xlabel("number of coarse samples $N_0$")
-
-    fn = f"two-level_diganostics_pilot={nsamp_pilot}_nseeds={nseeds}.pdf"
-    fig.savefig(PLOT_DIR / fn)
-    print(f"Plot saved to {PLOT_DIR / fn}")
-
+    fn = PLOT_DIR / f"two_level-ratio_nsamp_pilot={nsamp_pilot}_nseeds={nseeds}.pdf"
+    fig_ratio.savefig(fn)
+    print(f"Saved figure to {fn}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

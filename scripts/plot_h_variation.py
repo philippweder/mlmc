@@ -70,6 +70,7 @@ def main(
     )
     ax_var.loglog(df["h"], var, label=r"$\mathbb{V}[Y_h]$", marker="o")
     ax_var.set_xlabel("time step size $h$")
+    ax_var.set_ylim(1e-7, 1e-5)
     h, l = ax_var.get_legend_handles_labels()
     h = [h[1], h[0]]
     l = [l[1], l[0]]

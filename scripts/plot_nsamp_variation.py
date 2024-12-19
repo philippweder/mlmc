@@ -50,7 +50,7 @@ def main(
     ax_bias.loglog(
         df["nsamp"],
         bias,
-        label=r"$|\hat{\mu}^{(1)}_h - \hat{\mu}^{(1)}_{h/2}|$",
+        label=r"$|\hat{\mu}_h - \hat{\mu}_{h/2}|$",
         marker="o",
     )
     # ax_bias.set_xlim(df["nsamp"].min(), df["nsamp"].max())
@@ -74,14 +74,20 @@ def main(
         color="black",
     )
     ax_var.loglog(
-        df["nsamp"], var, label=r"$\mathbb{V}[\hat{\mu}^{(1)}_h]$", marker="o"
+        df["nsamp"], var, label=r"$\mathbb{V}[\hat{\mu}_h]$", marker="o"
     )
-    # ax_var.set_xlim(df["nsamp"].min(), df["nsamp"].max())
+    ax_var.loglog(
+        df["nsamp"],
+        var_diff,
+        label=r"$\mathbb{V}[\hat{\mu}_h - \hat{\mu}_{h/2}]$",
+        marker="o",
+    )
+    ax_var.set_ylim(None, 1e1)
     ax_var.set_xlabel("number of samples $N$")
     h, l = ax_var.get_legend_handles_labels()
     h = h[1:] + [h[0]]
     l = l[1:] + [l[0]]
-    ax_var.legend(h, l, loc="best")
+    ax_var.legend(h, l, loc="best", ncols=3, fontsize=8)
 
     fn = f"nsamp_variation-variance-nsteps_coarse={nsteps_coarse}_nseeds={nseeds}.pdf"
     fig_var.savefig(PLOT_DIR / fn)
