@@ -79,7 +79,7 @@ TWO_THIRD_SLIDE_SIZE = (5.7, 4.6)
 HALF_SLIDE_SIZE = (4.74, 4.6)
 
 # report sizes
-LINEWIDTH_SIZE = (3.5, 1.5)
+LINEWIDTH_SIZE = (3.5, 1.5 * 1.25)
 
 # poster sizes
 FULL_COL_SIZE = (14.1, 8.41)
