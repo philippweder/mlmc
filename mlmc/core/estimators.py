@@ -1,10 +1,10 @@
 import numpy as np
-from typing import Dict, Callable, List
-from numba import jit
+from typing import Dict, Callable, List, Tuple
+from numba import jit, njit
 
 
 # speed up computations using numba
-@jit(nopython=True)
+@njit
 def simulate_path(
     S: np.ndarray, r: float, h: float, sigma: float, dW: np.ndarray, nsteps: int
 ) -> np.ndarray:
@@ -17,7 +17,7 @@ def simulate_path(
     return S
 
 
-@jit(nopython=True)
+@njit
 def batch_simulate_path(
     S: np.ndarray,
     r: float,
@@ -66,9 +66,9 @@ def standard_mc(
     return result
 
 
-def coarse_fine_mc(
-    nsamp: int, h_coarse: float, payoff: Callable, **payoff_kwargs
-) -> Dict[str, float]:
+def mlmc_level(
+    nsamp: int, h: float, payoff: Callable, **payoff_kwargs
+) -> Tuple[float, float]:
 
     # Extract payoff parameters needed for path simulation
     S0 = payoff_kwargs["S0"]
@@ -77,31 +77,41 @@ def coarse_fine_mc(
     sigma = payoff_kwargs["sigma"]
 
     # define the finer grid to estimate the bias:
-    h_fine = h_coarse / 2
-    M_coarse = int(T / h_coarse)
-    M_fine = 2 * M_coarse
+    h_fine = h / 2
+    nsteps_coarse = int(T / h)
+    nsteps_fine = 2 * nsteps_coarse
 
-    S_fine = np.zeros((nsamp, M_fine + 1))
+    S_fine = np.zeros((nsamp, nsteps_fine + 1))
     S_fine[:, 0] = S0
 
-    S_coarse = np.zeros((nsamp, M_coarse + 1))
+    S_coarse = np.zeros((nsamp, nsteps_coarse + 1))
     S_coarse[:, 0] = S0
 
-    dW_fine = np.random.standard_normal(size=(nsamp, M_fine))
-    S_fine = batch_simulate_path(S_fine, r, h_fine, sigma, dW_fine, M_fine, nsamp)
+    dW_fine = np.random.standard_normal(size=(nsamp, nsteps_fine))
+    S_fine = batch_simulate_path(S_fine, r, h_fine, sigma, dW_fine, nsteps_fine, nsamp)
 
-    payoff_vec = np.vectorize(
-        lambda s, h: payoff(s, h, **payoff_kwargs), signature="(n,m),() ->(n)"
+    payoffs_vec_fine = np.vectorize(
+        lambda s: payoff(s, h_fine, **payoff_kwargs), signature="(n,m) ->(n)"
     )
-    payoffs_fine = payoff_vec(S_fine, h_fine)
-
-    # dW_coarse = np.add.reduceat(dW_fine, np.arange(0, M_fine, 2), axis=1) / np.sqrt(2.0)
+    payoffs_fine = payoffs_vec_fine(S_fine)
     dW_coarse = (dW_fine[:, 0::2] + dW_fine[:, 1::2]) / np.sqrt(2.0)
     S_coarse = batch_simulate_path(
-        S_coarse, r, h_coarse, sigma, dW_coarse, M_coarse, nsamp
+        S_coarse, r, h, sigma, dW_coarse, nsteps_coarse, nsamp
     )
 
-    payoffs_coarse = payoff_vec(S_coarse, h_coarse)
+    payoffs_vec_coarse = np.vectorize(
+        lambda s: payoff(s, h, **payoff_kwargs), signature="(n,m) ->(n)"
+    )
+    payoffs_coarse = payoffs_vec_coarse(S_coarse)
+
+    return payoffs_coarse, payoffs_fine
+
+
+def coarse_fine_mc(
+    nsamp: int, h_coarse: float, payoff: Callable, **payoff_kwargs
+) -> Dict[str, float]:
+
+    payoffs_coarse, payoffs_fine = mlmc_level(nsamp, h_coarse, payoff, **payoff_kwargs)
 
     result = {
         "esp_coarse": np.mean(payoffs_coarse),
@@ -111,6 +121,11 @@ def coarse_fine_mc(
         "esp_diff": np.mean(payoffs_fine - payoffs_coarse),
         "var_diff": np.var(payoffs_fine - payoffs_coarse, ddof=1) / nsamp,
         "bias": abs(np.mean(payoffs_coarse) - np.mean(payoffs_fine)),
+        "sum_coarse": np.sum(payoffs_coarse),
+        "sum_coarse2": np.sum(payoffs_coarse**2),
+        "sum_fine": np.sum(payoffs_fine),
+        "sum_diff": np.sum(payoffs_fine - payoffs_coarse),
+        "sum_diff2": np.sum((payoffs_fine - payoffs_coarse) ** 2),
     }
 
     return result
@@ -168,19 +183,19 @@ def mlmc(
     level_vars = np.zeros(len(nsamps))
 
     for l, (h, nsamp) in enumerate(zip(h_values, nsamps)):
-        level_result = coarse_fine_mc(nsamp, h, payoff, **payoff_kwargs)
+        pc, pf = mlmc_level(nsamp, h, payoff, **payoff_kwargs)
 
         if l == 0:
-            level_means[l] = level_result["esp_coarse"]
-            level_vars[l] = level_result["var_coarse"]
+            level_means[l] = np.mean(pc)
+            level_vars[l] = np.var(pc, ddof=1) / nsamp
 
         else:
-            level_means[l] = level_result["esp_diff"]
-            level_vars[l] = level_result["var_diff"] #this is Var(Yl - Yl-1)/nsamp
+            level_means[l] = np.mean(pf - pc)
+            level_vars[l] = np.var(pf - pc, ddof=1) / nsamp
 
     result = {
         "esp": np.sum(level_means),
-        "var": np.sum(level_vars), #this is Var(Yl - Yl-1)/nsamp
+        "var": np.sum(level_vars),  # this is Var(Yl - Yl-1)/nsamp
     }
 
     return result
