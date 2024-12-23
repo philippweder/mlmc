@@ -28,9 +28,8 @@ def main(
     nsamp_pilot: int,
     nlevels_pilot: int,
     out_dir: Path,
-):
-    # np.random.seed(9434)
-    np.random.seed(9336)
+):  
+    np.random.seed(9434)
     h_coarse = 0.2  # this value for h0 is forced by the statement of the project.
 
     # to know the proportionality factors E0 and V0

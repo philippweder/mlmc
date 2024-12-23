@@ -20,7 +20,7 @@ def mlmc_pilot(
     nsamp: int,
     h_coarse: int,
     option: Option,
-    nruns: int = 10,
+    nruns: int = 1,
     alpha: float | None = None,
     beta: float | None = None,
     gamma: float = 1,
@@ -106,7 +106,8 @@ def compute_optimal_samps(
     beta: float = 1,
     gamma: float = 1,
 ) -> Tuple[int, List[int]]:
-    optimal_nlevels = int(np.ceil(np.log2(E0 / eps) / alpha))
+    # optimal_nlevels = int(np.ceil(np.log2(E0 / eps) / alpha))
+    optimal_nlevels = int(np.ceil((np.log2(E0 / eps) - np.log2(1 - 2 ** (-alpha))) / alpha))
 
     if np.allclose([beta], [gamma]):
 

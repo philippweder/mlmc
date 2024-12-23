@@ -1,3 +1,4 @@
+import math
 import matplotlib as mpl
 from cycler import cycler
 
@@ -173,3 +174,14 @@ def set_plot_style(color_style=SIAM, usetex=False):
         mpl.rcParams['text.latex.preamble'] = r'\usepackage{amsmath, amssymb}'
         mpl.rcParams["text.usetex"] = usetex
         mpl.rcParams["font.family"] = "serif"
+
+
+def format_scientific(x: float, f_mantissa: int = 2) -> str:
+    if x == 0:
+        return "0"
+    exponent = math.floor(math.log10(abs(x)))
+    mantissa = x / (10 ** exponent)
+    if mantissa == 1.0:
+        return f"10^{{{exponent}}}"
+    else:
+        return f"{mantissa:.{f_mantissa}f} \\cdot 10^{{{exponent}}}"
