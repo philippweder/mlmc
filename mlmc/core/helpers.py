@@ -3,6 +3,7 @@ import numpy as np
 from tqdm import tqdm
 from scipy.optimize import curve_fit
 
+from mlmc.core.options import Option
 from mlmc.core.estimators import coarse_fine_mc
 
 
@@ -18,12 +19,11 @@ def mlmc_pilot(
     nlevels: int,
     nsamp: int,
     h_coarse: int,
-    payoff: Callable,
+    option: Option,
     nruns: int = 10,
     alpha: float | None = None,
     beta: float | None = None,
     gamma: float = 1,
-    **payoff_kwargs,
 ) -> Dict[str, float]:
     """
     Performs a Multilevel Monte Carlo (MLMC) pilot un to estimate the bias and variance decay.
@@ -59,9 +59,9 @@ def mlmc_pilot(
 
         pbar = tqdm(enumerate(h_values), desc="Running pilot run", total=len(h_values))
         for i, h in pbar:
-            pbar.set_postfix({"h": h, "seed": run})
+            pbar.set_postfix({"h": h, "run": run})
             # coarse_fine_mc estimates difference between fine-level (2h) and coarse-level(h)
-            result = coarse_fine_mc(nsamp, h, payoff, **payoff_kwargs)
+            result = coarse_fine_mc(nsamp, h, option)
             biases[i] += result["bias"]
             diff_variances[i] += result["var_diff"] * nsamp
 

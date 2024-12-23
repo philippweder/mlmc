@@ -8,23 +8,15 @@ import logging
 import time
 
 from mlmc.core.estimators import mlmc, standard_mc
-from mlmc.core.helpers import mlmc_pilot
+from mlmc.core.options import AsianOption
 from mlmc.core.payoff import asian_option
-from mlmc.core.helpers import compute_optimal_samps
+from mlmc.core.helpers import compute_optimal_samps, mlmc_pilot
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 DATA_DIR = Path("../data/asian_option")
 DATA_DIR.mkdir(exist_ok=True, parents=True)
-
-payoff_kwargs = {
-    "T": 1,  # Time to maturity
-    "r": 0.05,  # Risk-free interest rate
-    "sigma": 0.2,  # Volatility
-    "K": 1,  # Strike price
-    "S0": 1,  # Initial stock price
-}
 
 
 def main(
@@ -42,6 +34,7 @@ def main(
         est_str = "prescribed"
 
     np.random.seed(9434)
+    option = AsianOption()
     h_coarse = 0.2  # this value for h0 is forced by the statement of the project.
 
     means_mlmc = np.zeros(len(eps_val))
@@ -59,11 +52,10 @@ def main(
         nlevels_pilot,
         nsamp_pilot,
         h_coarse,
-        asian_option,
+        option,
         alpha=alpha,
         beta=beta,
-        gamma=gamma,
-        **payoff_kwargs,
+        gamma=gamma
     )
     E0 = pilot_results["E0"]
     alpha = pilot_results["alpha"]
@@ -98,7 +90,7 @@ def main(
 
         # below : run the actual MLMC simulation using optimal Nl and L
         start_cpu_time = time.process_time()
-        result = mlmc(optimal_nsamps, h_coarse, asian_option, **payoff_kwargs)
+        result = mlmc(optimal_nsamps, h_coarse, option)
         end_cpu_time = time.process_time()
 
         cpu_times[i] = end_cpu_time - start_cpu_time
@@ -114,7 +106,7 @@ def main(
 
         h_crude = h_coarse * (2**optimal_L)
         start_cpu_time = time.process_time()
-        result_crude = standard_mc(nsamp_crude, h_crude, asian_option, **payoff_kwargs)
+        result_crude = standard_mc(nsamp_crude, h_crude, option)
         end_cpu_time = time.process_time()
 
         cpu_times_mc[i] = end_cpu_time - start_cpu_time
