@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import logging
 
-from mlmc.utils.plot import set_plot_style, NATURE, LINEWIDTH_SIZE, MARKERS
+from mlmc.utils.plot import set_plot_style, NATURE, LINEWIDTH_SIZE, MARKERS, format_scientific
 
 DATA_DIR = Path("../data/asian_option")
 PLOT_DIR = Path("../plots/asian_option")
@@ -80,7 +80,7 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
 
     fig_cpu = plt.figure(figsize=LINEWIDTH_SIZE, constrained_layout=True)
     ax_cpu = fig_cpu.subplots(1, 1)
-    ax_cpu.loglog(df["eps"], df["cpu_time"], marker="o", label="MLMC")
+    ax_cpu.loglog(df["eps"], df["cpu_time_mlmc"], marker="o", label="MLMC")
     ax_cpu.loglog(df["eps"], df["cpu_time_mc"], marker="s", label="MC")
     ax_cpu.set_xlabel(r"target precision $\varepsilon$")
     ax_cpu.set_ylabel("CPU time [s]")
@@ -99,16 +99,18 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
         nsamps = [int(row[c]) for c in row.index if c != "eps" and not row[c] == 0]
         nsamps = np.array(nsamps)
         eps = row["eps"]
+        eps_str = format_scientific(eps, 0)
         ax_levels.semilogy(
             np.arange(len(nsamps)),
             nsamps,
             marker=marker,
-            label=f"$\\varepsilon = {eps}$",
+            label=f"${eps_str}$",
         )
 
     ax_levels.set_xlabel("level $\ell$")
     ax_levels.set_ylabel("number of samples $N_{\ell}$")
-    ax_levels.legend(loc="best")
+    ax_levels.legend(loc="lower right", ncols=2)
+    ax_levels.set_ylim(1e0, 1e7)
 
     fn = (
         PLOT_DIR
@@ -156,12 +158,13 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
     ax_cost.loglog(df["eps"], mlmc_cost, marker="o", label=f"MLMC")
     ax_cost.loglog(df["eps"], mc_cost, marker="s", label=f"MC")
     ax_cost.set_xlabel("target precision $\\varepsilon$")
-    ax_cost.set_ylabel("computational cost")
+    ax_cost.set_ylabel("normalized cost")
+    ax_cost.set_ylim(1e1, 1e12)
 
     h, l = ax_cost.get_legend_handles_labels()
     h = [h[2], h[3], h[0], h[1]]
     l = [l[2], l[3], l[0], l[1]]
-    ax_cost.legend(h, l, loc="best")
+    ax_cost.legend(h, l, loc="best", ncols=2)
 
     fn = (
         PLOT_DIR
@@ -198,7 +201,7 @@ if __name__ == "__main__":
         "--coeffs",
         "-c",
         type=str,
-        default="estimated",
+        default="prescribed",
         choices=["estimated", "prescribed"],
         help="""Whether to use the results from estimating
           alpha and beta or the results from a fixed value""",

@@ -11,30 +11,15 @@ PLOT_DIR = Path("../plots/asian_option")
 PLOT_DIR.mkdir(exist_ok=True, parents=True)
 
 
-def main(
-    nsteps_coarse: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False
-) -> None:
+def main(nsteps_coarse: int, style: str = NATURE, usetex: bool = False) -> None:
 
-    for nseed in range(nseeds):
-        df = pd.read_csv(
-            DATA_DIR / f"nsamp_variation_nsteps_coarse={nsteps_coarse}_seed={nseed}.csv"
-        )
-        if nseed == 0:
-            bias = df["bias"]
-            var = df["variance_coarse"]
-            var_diff = df["variance_diff"]
-        else:
-            bias += df["bias"]
-            var += df["variance_coarse"]
-            var_diff += df["variance_diff"]
+    df = pd.read_csv(DATA_DIR / f"nsamp_variation_nsteps_coarse={nsteps_coarse}.csv")
+    bias = df["bias"]
+    var = df["variance_coarse"]
+    var_diff = df["variance_diff"]
 
-    bias /= nseeds
     bias_trend = bias.iloc[0] * np.sqrt(df["nsamp"].iloc[0]) / np.sqrt(df["nsamp"])
-
-    var /= nseeds
     var_trend = var.iloc[0] * df["nsamp"].iloc[0] / df["nsamp"]
-
-    var_diff /= nseeds
 
     set_plot_style(style, usetex)
     fig_bias, ax_bias = plt.subplots(
@@ -60,7 +45,7 @@ def main(
     l = l[1:] + [l[0]]
     ax_bias.legend(h, l, loc="best")
 
-    fn = f"nsamp_variation-bias-nsteps_coarse={nsteps_coarse}_nseeds={nseeds}.pdf"
+    fn = f"nsamp_variation-bias-nsteps_coarse={nsteps_coarse}.pdf"
     fig_bias.savefig(PLOT_DIR / fn)
     print(f"Plot saved to {PLOT_DIR / fn}")
 
@@ -73,9 +58,7 @@ def main(
         linestyle="--",
         color="black",
     )
-    ax_var.loglog(
-        df["nsamp"], var, label=r"$\mathbb{V}[\hat{\mu}_h]$", marker="o"
-    )
+    ax_var.loglog(df["nsamp"], var, label=r"$\mathbb{V}[\hat{\mu}_h]$", marker="o")
     ax_var.loglog(
         df["nsamp"],
         var_diff,
@@ -89,7 +72,7 @@ def main(
     l = l[1:] + [l[0]]
     ax_var.legend(h, l, loc="best", ncols=3, fontsize=8)
 
-    fn = f"nsamp_variation-variance-nsteps_coarse={nsteps_coarse}_nseeds={nseeds}.pdf"
+    fn = f"nsamp_variation-variance-nsteps_coarse={nsteps_coarse}.pdf"
     fig_var.savefig(PLOT_DIR / fn)
     print(f"Plot saved to {PLOT_DIR / fn}")
 
@@ -99,9 +82,8 @@ if __name__ == "__main__":
         description="Script to analyze the variation of the number of samples."
     )
     parser.add_argument(
-        "--nsteps_coarse", type=int, default=200, help="Number of coarse time steps"
+        "--nsteps_coarse", type=int, default=1000, help="Number of coarse time steps"
     )
-    parser.add_argument("--nseeds", type=int, default=1, help="Number of seeds")
     parser.add_argument(
         "--style", type=str, default=NATURE, choices=STYLES, help="Plot style"
     )
@@ -110,4 +92,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    main(args.nsteps_coarse, args.nseeds, args.style, args.usetex)
+    main(args.nsteps_coarse, args.style, args.usetex)

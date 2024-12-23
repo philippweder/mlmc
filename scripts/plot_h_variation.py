@@ -12,22 +12,14 @@ PLOT_DIR.mkdir(exist_ok=True, parents=True)
 
 
 def main(
-    nsamp: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False
+    nsamp: int, style: str = NATURE, usetex: bool = False
 ) -> None:
 
-    for nseed in range(nseeds):
-        df = pd.read_csv(DATA_DIR / f"h_variation_nsamp={nsamp}_seed={nseed}.csv")
-        if nseed == 0:
-            bias = df["bias"]
-            var = df["variance_coarse"]
-        else:
-            bias += df["bias"]
-            var += df["variance_coarse"]
+    df = pd.read_csv(DATA_DIR / f"h_variation_nsamp={nsamp}.csv")
+    bias = df["bias"]
+    var = df["variance_coarse"]
 
-    bias /= nseeds
     bias_trend_one = bias.iloc[0] * df["h"] / df["h"].iloc[0]
-
-    var /= nseeds
     var_trend = var.iloc[-1] * np.ones_like(df["h"])
 
     set_plot_style(style, usetex)
@@ -53,7 +45,7 @@ def main(
     ax_bias.legend(h, l, loc="best")
     ax_bias.set_xlabel("time step size $h$")
 
-    fn = f"h_variation-bias-nsamp={nsamp}_nseeds={nseeds}.pdf"
+    fn = f"h_variation-bias-nsamp={nsamp}.pdf"
     fig_bias.savefig(PLOT_DIR / fn)
     print(f"Plot saved to {PLOT_DIR / fn}")
 
@@ -76,7 +68,7 @@ def main(
     l = [l[1], l[0]]
     ax_var.legend(h, l, loc="best")
 
-    fn = f"h_variation-variance-nsamp={nsamp}_nseeds={nseeds}.pdf"
+    fn = f"h_variation-variance-nsamp={nsamp}.pdf"
     fig_var.savefig(PLOT_DIR / fn)
     print(f"Plot saved to {PLOT_DIR / fn}")
 
@@ -86,7 +78,6 @@ if __name__ == "__main__":
         description="Script to analyze the variation of the time step."
     )
     parser.add_argument("--nsamp", type=int, default=10000, help="Number of samples")
-    parser.add_argument("--nseeds", type=int, default=10, help="Number of seeds")
     parser.add_argument(
         "--style", type=str, default=NATURE, choices=STYLES, help="Plot style"
     )
@@ -95,4 +86,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    main(args.nsamp, args.nseeds, args.style, args.usetex)
+    main(args.nsamp, args.style, args.usetex)

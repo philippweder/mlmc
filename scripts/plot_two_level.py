@@ -15,35 +15,18 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 def main(
-    nsamp_pilot: int, nseeds: int = 1, style: str = NATURE, usetex: bool = False
+    nsamp_pilot: int, style: str = NATURE, usetex: bool = False
 ) -> None:
 
-    for nseed in range(nseeds):
-        df = pd.read_csv(
-            DATA_DIR / f"two_level_nsamp_pilot={nsamp_pilot}_seed={nseed}.csv"
-        )
-        if nseed == 0:
-            optimal_ratio = df["optimal_ratio"]
-            mean_2l = df["mean_2l"]
-            var_2l = df["variance_2l"]
-            nsamp_crude = df["nsamp_crude"]
-            mean_crude = df["mean_crude"]
-            var_crude = df["variance_crude"]
-
-        else:
-            optimal_ratio += df["optimal_ratio"]
-            mean_2l += df["mean_2l"]
-            var_2l += df["variance_2l"]
-            nsamp_crude += df["nsamp_crude"]
-            mean_crude += df["mean_crude"]
-            var_crude += df["variance_crude"]
-
-    optimal_ratio /= nseeds
-    mean_2l /= nseeds
-    var_2l /= nseeds
-    nsamp_crude /= nseeds
-    mean_crude /= nseeds
-    var_crude /= nseeds
+    df = pd.read_csv(
+        DATA_DIR / f"two_level_nsamp_pilot={nsamp_pilot}.csv"
+    )
+    optimal_ratio = df["optimal_ratio"]
+    mean_2l = df["mean_2l"]
+    var_2l = df["variance_2l"]
+    nsamp_crude = df["nsamp_crude"]
+    mean_crude = df["mean_crude"]
+    var_crude = df["variance_crude"]
 
 
     mean_ratio = np.mean(optimal_ratio)
@@ -69,7 +52,7 @@ def main(
     ax_conv.set_xlabel("coarse samples $N_0$")
     ax_conv.legend(loc="best")
 
-    fn = PLOT_DIR / f"two_level-conv_nsamp_pilot={nsamp_pilot}_nseeds={nseeds}.pdf"
+    fn = PLOT_DIR / f"two_level-conv_nsamp_pilot={nsamp_pilot}.pdf"
     fig_conv.savefig(fn)
     print(f"Saved figure to {fn}")
 
@@ -82,7 +65,7 @@ def main(
     h, l = ax_var.get_legend_handles_labels()
     ax_var.legend(h[::-1], l[::-1], loc="lower left", ncols=1)
 
-    fn = PLOT_DIR / f"two_level-var_nsamp_pilot={nsamp_pilot}_nseeds={nseeds}.pdf"
+    fn = PLOT_DIR / f"two_level-var_nsamp_pilot={nsamp_pilot}.pdf"
     fig_var.savefig(fn)
     print(f"Saved figure to {fn}")
 
@@ -94,7 +77,7 @@ def main(
                     medianprops = {"color": "black"})
     ax_ratio.set_xticks([])
     
-    fn = PLOT_DIR / f"two_level-ratio_nsamp_pilot={nsamp_pilot}_nseeds={nseeds}.pdf"
+    fn = PLOT_DIR / f"two_level-ratio_nsamp_pilot={nsamp_pilot}.pdf"
     fig_ratio.savefig(fn)
     print(f"Saved figure to {fn}")
 
@@ -105,7 +88,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--nsamp_pilot", type=int, default=1000, help="Number of coarse time steps"
     )
-    parser.add_argument("--nseeds", type=int, default=1, help="Number of seeds")
     parser.add_argument(
         "--style", type=str, default=NATURE, choices=STYLES, help="Plot style"
     )
@@ -114,4 +96,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    main(args.nsamp_pilot, args.nseeds, args.style, args.usetex)
+    main(args.nsamp_pilot, args.style, args.usetex)
