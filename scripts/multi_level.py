@@ -40,7 +40,7 @@ def main(
     means_mlmc = np.zeros(len(eps_val))
     variances_mlmc = np.zeros(len(eps_val))
     nlevels = np.zeros(len(eps_val))  # L
-    cpu_times = np.zeros(len(eps_val))
+    cpu_times_mlmc = np.zeros(len(eps_val))
     optimal_nsamps_list = []
 
     means_mc = np.zeros(len(eps_val))
@@ -89,27 +89,27 @@ def main(
         logger.info(f"Optimal number of samples: {optimal_nsamps}")
 
         # below : run the actual MLMC simulation using optimal Nl and L
-        start_cpu_time = time.process_time()
+        start_mlmc = time.process_time()
         result = mlmc(optimal_nsamps, h_coarse, option)
-        end_cpu_time = time.process_time()
+        end_mlmc = time.process_time()
 
-        cpu_times[i] = end_cpu_time - start_cpu_time
+        cpu_times_mlmc[i] = end_mlmc - start_mlmc
         means_mlmc[i] = result["esp"]
         variances_mlmc[i] = result["var"]  # this is var(Yl - Yl-1)/nsamp
         nlevels[i] = optimal_L + 1
 
         optimal_nsamps_list.append(optimal_nsamps)
 
-        logger.info(f"CPU Time MLMC: {cpu_times[i]:.6f} s")
+        logger.info(f"CPU Time MLMC: {cpu_times_mlmc[i]:.6f} s")
 
         nsamp_crude = int(np.ceil(V_mc / eps**2))
 
         h_crude = h_coarse * (2**optimal_L)
-        start_cpu_time = time.process_time()
+        start_mc = time.process_time()
         result_crude = standard_mc(nsamp_crude, h_crude, option)
-        end_cpu_time = time.process_time()
+        end_mc = time.process_time()
 
-        cpu_times_mc[i] = end_cpu_time - start_cpu_time
+        cpu_times_mc[i] = end_mc - start_mc
         means_mc[i] = result_crude["esp"]
         variances_mc[i] = result_crude["var"]
         nsamps_mc[i] = nsamp_crude
@@ -120,7 +120,7 @@ def main(
     df_outputs = pd.DataFrame(
         {
             "eps": eps_val,
-            "cpu_time": cpu_times,
+            "cpu_time_mlmc": cpu_times_mlmc,
             "mean": means_mlmc,  # this is for each level esp(Yl - Yl-1)
             "variance": variances_mlmc,  # this is var(Yl - Yl-1)/nsamp
             "nlevels": nlevels,
@@ -169,7 +169,7 @@ if __name__ == "__main__":
         "--eps",
         type=float,
         nargs="+",
-        default=[1e-5, 5e-5, 1e-4, 2e-4, 5e-4],
+        default=[1e-5, 5e-5, 1e-4, 5e-4, 1e-3],
         help="Target accuracies epsilon for which to compute the MLMC estimator",
     )
     parser.add_argument(
