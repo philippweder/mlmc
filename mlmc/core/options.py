@@ -57,3 +57,36 @@ class AsianOption(Option):
             payoffs[n] = max([Sbar - K, 0.0]) * np.exp(-r)
 
         return payoffs
+
+
+class BarrierOption(Option):
+
+    def __init__(
+        self,
+        S0: float = 1,
+        T: float = 1,
+        r: float = 0.05,
+        sigma: float = 0.2,
+        K: float = 1,
+        Smax: float = 1.5,
+    ):
+        super().__init__(S0, T, r, sigma)
+        self.K = K  # Strike price
+        self.Smax = Smax  # Barrier level
+
+    def payoff(self, S: np.ndarray, h: float) -> np.ndarray:
+        payoffs = np.zeros(S.shape[0])
+        return self._payoff(S, h, payoffs, self.K, self.Smax, self.r)
+
+    @staticmethod
+    @njit
+    def _payoff(
+        S: np.ndarray, h: float, payoffs: np.ndarray, K: float, Smax: float, r: float
+    ) -> np.ndarray:
+        for n in range(S.shape[0]):
+            if np.any(S[n] >= Smax):
+                payoffs[n] = 0.0
+            else:
+                payoffs[n] = max(0, S[n, -1] - K) * np.exp(-r)
+
+        return payoffs

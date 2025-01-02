@@ -8,14 +8,13 @@ import logging
 import time
 
 from mlmc.core.estimators import mlmc, standard_mc
-from mlmc.core.options import AsianOption
-from mlmc.core.payoff import asian_option
+from mlmc.core.options import BarrierOption
 from mlmc.core.helpers import compute_optimal_samps, mlmc_pilot
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-DATA_DIR = Path("../data/asian_option")
+DATA_DIR = Path("../data/barrier_option")
 DATA_DIR.mkdir(exist_ok=True, parents=True)
 
 
@@ -24,17 +23,11 @@ def main(
     nsamp_pilot: int,
     nlevels_pilot: int,
     out_dir: Path,
-    alpha: float | None = None,
-    beta: float | None = None,
     gamma: float = 1,
 ):
-    if alpha is None or beta is None:
-        est_str = "estimated"
-    else:
-        est_str = "prescribed"
 
     np.random.seed(9434)
-    option = AsianOption()
+    option = BarrierOption()
     h_coarse = 0.2  # this value for h0 is forced by the statement of the project.
 
     means_mlmc = np.zeros(len(eps_val))
@@ -53,8 +46,8 @@ def main(
         nsamp_pilot,
         h_coarse,
         option,
-        alpha=alpha,
-        beta=beta,
+        alpha=None,
+        beta=None,
         gamma=gamma
     )
     E0 = pilot_results["E0"]
@@ -63,6 +56,8 @@ def main(
     beta = pilot_results["beta"]
     V_mc = pilot_results["Vfine"]
 
+    logger.info(f"alpha: {alpha}")
+    logger.info(f"beta: {beta}")
     logger.info(f"E0: {E0:5e}")
     logger.info(f"V0: {V0:5e}")
 
@@ -73,7 +68,7 @@ def main(
 
     fn = (
         out_dir
-        / f"mlmc_pilot_nsamp_pilot={nsamp_pilot}_nlevels_pilot={nlevels_pilot}_coeffs={est_str}.csv"
+        / f"mlmc_pilot_nsamp_pilot={nsamp_pilot}_nlevels_pilot={nlevels_pilot}.csv"
     )
     pd.DataFrame(pilot_df).to_csv(fn, index=False)
 
@@ -138,7 +133,7 @@ def main(
 
     out_path = (
         out_dir
-        / f"mlmc-nsamp_pilot={nsamp_pilot}_nlevels_pilot={nlevels_pilot}_coeffs={est_str}.csv"
+        / f"mlmc-nsamp_pilot={nsamp_pilot}_nlevels_pilot={nlevels_pilot}.csv"
     )
     df_outputs.to_csv(out_path, index=False)
     logger.info(f"Results saved to {out_path}")
@@ -155,7 +150,7 @@ def main(
     df_nlevels["eps"] = eps_val
     out_path_nlevels = (
         out_dir
-        / f"mlmc_nlevels-nsamp_pilot={nsamp_pilot}_nlevels_pilot={nlevels_pilot}_coeffs={est_str}.csv"
+        / f"mlmc_nlevels-nsamp_pilot={nsamp_pilot}_nlevels_pilot={nlevels_pilot}.csv"
     )
     df_nlevels.to_csv(out_path_nlevels, index=False)
     logger.info(f"Results saved to {out_path_nlevels}")
@@ -169,7 +164,7 @@ if __name__ == "__main__":
         "--eps",
         type=float,
         nargs="+",
-        default=[1e-5, 5e-5, 1e-4, 5e-4, 1e-3],
+        default=[5e-4, 1e-3, 5e-3, 1e-2],
         help="Target accuracies epsilon for which to compute the MLMC estimator",
     )
     parser.add_argument(
@@ -185,20 +180,6 @@ if __name__ == "__main__":
         help="Number of levels for the pilot run.",
     )
     parser.add_argument(
-        "--alpha",
-        "-a",
-        type=float,
-        default=None,
-        help="Prescribed decay of biase. Set to none to estimate it.",
-    )
-    parser.add_argument(
-        "--beta",
-        "-b",
-        type=float,
-        default=None,
-        help="Prescribed decay of variance. Set to none to estimate it.",
-    )
-    parser.add_argument(
         "--gamma",
         "-g",
         type=float,
@@ -212,7 +193,5 @@ if __name__ == "__main__":
         args.nsamp_pilot,
         args.nlevels_pilot,
         DATA_DIR,
-        alpha=args.alpha,
-        beta=args.beta,
         gamma=args.gamma,
     )
