@@ -42,7 +42,6 @@ def batch_simulate_path(
 
 
 def standard_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
-    # Extract payoff parameters needed for path simulation
     nsteps = int(option.T / h)
 
     S = np.zeros((nsamp, nsteps + 1))
@@ -50,6 +49,32 @@ def standard_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
     dW = np.random.standard_normal((nsamp, nsteps))
     S = batch_simulate_path(S, option.r, h, option.sigma, dW, nsteps, nsamp)
     payoffs = option.payoff(S, h)
+    result = {
+        "esp": np.mean(payoffs),
+        "var": np.var(payoffs, ddof=1) / nsamp,
+    }
+
+    return result
+
+
+def antithetic_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
+    nsteps = int(option.T / h)
+
+    # sample nsamp paths   
+    S = np.zeros((nsamp, nsteps + 1))
+    S[:, 0] = option.S0
+    dW = np.random.standard_normal((nsamp, nsteps))
+    S = batch_simulate_path(S, option.r, h, option.sigma, dW, nsteps, nsamp)
+    payoffs = option.payoff(S, h)
+
+    # sample nsamp paths with the same random numbers but with opposite signs 
+    S_antithetic = np.zeros((nsamp, nsteps + 1))
+    S_antithetic[:, 0] = option.S0
+    S_antithetic = batch_simulate_path(S_antithetic, option.r, h, option.sigma, -dW, nsteps, nsamp)
+    payoffs_antithetic = option.payoff(S_antithetic, h)
+
+    payoffs = 0.5 * (payoffs + payoffs_antithetic)
+
     result = {
         "esp": np.mean(payoffs),
         "var": np.var(payoffs, ddof=1) / nsamp,
