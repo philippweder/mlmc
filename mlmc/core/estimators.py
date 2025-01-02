@@ -60,17 +60,19 @@ def standard_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
 def antithetic_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
     nsteps = int(option.T / h)
 
-    # sample nsamp paths   
+    # sample nsamp paths
     S = np.zeros((nsamp, nsteps + 1))
     S[:, 0] = option.S0
     dW = np.random.standard_normal((nsamp, nsteps))
     S = batch_simulate_path(S, option.r, h, option.sigma, dW, nsteps, nsamp)
     payoffs = option.payoff(S, h)
 
-    # sample nsamp paths with the same random numbers but with opposite signs 
+    # sample nsamp paths with the same random numbers but with opposite signs
     S_antithetic = np.zeros((nsamp, nsteps + 1))
     S_antithetic[:, 0] = option.S0
-    S_antithetic = batch_simulate_path(S_antithetic, option.r, h, option.sigma, -dW, nsteps, nsamp)
+    S_antithetic = batch_simulate_path(
+        S_antithetic, option.r, h, option.sigma, -dW, nsteps, nsamp
+    )
     payoffs_antithetic = option.payoff(S_antithetic, h)
 
     payoffs = 0.5 * (payoffs + payoffs_antithetic)
@@ -78,6 +80,35 @@ def antithetic_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
     result = {
         "esp": np.mean(payoffs),
         "var": np.var(payoffs, ddof=1) / nsamp,
+    }
+
+    return result
+
+
+def gbm_likelihood_ratio(
+    x: float, r: float, R: float, sigma: float, T: float = 1
+) -> float:
+    return np.exp(((R - r) * (R + r - sigma**2) * T - 2 * x) / (2 * sigma**2))
+
+
+def ismc(nsamp: int, h: float, option: Option, R: float) -> Dict[str, float]:
+    nsteps = int(option.T / h)
+
+    S = np.zeros((nsamp, nsteps + 1))
+    S[:, 0] = option.S0
+    dW = np.random.standard_normal((nsamp, nsteps))
+ 
+    # simulate paths with higher interest rate R
+    S = batch_simulate_path(S, R, h, option.sigma, dW, nsteps, nsamp)
+    payoffs = option.payoff(S, h)
+
+    # compute the importance sampling weights
+    X = np.sum(np.sqrt(h) * option.sigma * dW, axis=1)
+    w = gbm_likelihood_ratio(X, option.r, R, option.sigma, option.T)
+
+    result = {
+        "esp": np.mean(payoffs * w),
+        "var": np.var(payoffs * w, ddof=1) / nsamp,
     }
 
     return result
@@ -151,9 +182,7 @@ def two_level_mc(
     return result
 
 
-def mlmc(
-    nsamps: List[int], h_coarse: float, option: Option
-) -> Dict[str, float]:
+def mlmc(nsamps: List[int], h_coarse: float, option: Option) -> Dict[str, float]:
 
     h_values = [h_coarse / 2**i for i in range(len(nsamps))]
     level_means = np.zeros(len(nsamps))
