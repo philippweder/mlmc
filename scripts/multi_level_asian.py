@@ -174,13 +174,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--nsamp_pilot",
         type=int,
-        default=50_000,
+        default=10_000,
         help="Number of samples for the pilot run.",
     )
     parser.add_argument(
         "--nlevels_pilot",
         type=int,
-        default=8,
+        default=6,
         help="Number of levels for the pilot run.",
     )
     parser.add_argument(
