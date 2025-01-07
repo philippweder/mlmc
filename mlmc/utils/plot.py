@@ -130,6 +130,7 @@ def set_plot_style(color_style=SIAM, usetex=False):
         mpl.rcParams["legend.shadow"] = False
         mpl.rcParams["legend.fancybox"] = False
         mpl.rcParams["legend.fontsize"] = 8
+        mpl.rcParams["legend.title_fontsize"] = 8
 
 
         # lines and markers

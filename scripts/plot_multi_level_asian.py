@@ -43,10 +43,12 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
     V0 = df["V0"].iloc[0]
     beta = df["beta"].iloc[0]
 
+    logger.info(f"E0 = {E0:.3e}, alpha = {alpha:.3e}, V0 = {V0:.3e}, beta = {beta:.3e}")
+
     ax_bias.loglog(
         levels,
         E0 / (2 ** (alpha * levels)),
-        label="$E_0 2^{-\\alpha\ell}$",
+        label="$\\Tilde{E}_0 2^{-\\alpha\ell}$",
         ls="--",
         color="black",
     )
@@ -54,12 +56,13 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
         levels, df_pilot["biases"], marker="o", label="$E_\ell$", linewidths=0.5
     )
     ax_bias.set_xlabel("level $\ell$")
+    ax_bias.set_ylabel("DUMMY", color="white")
     ax_bias.legend(loc="best")
 
     ax_variance.loglog(
         levels,
         V0 / (2 ** (beta * levels)),
-        label="$V_0 2^{-\\beta\ell}$",
+        label="$\\Tilde{V}_0 2^{-\\beta\ell}$",
         ls="--",
         color="black",
     )
@@ -109,8 +112,8 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
 
     ax_levels.set_xlabel("level $\ell$")
     ax_levels.set_ylabel("number of samples $N_{\ell}$")
-    ax_levels.legend(loc="lower right", ncols=2)
-    ax_levels.set_ylim(1e0, 1e7)
+    ax_levels.legend(loc="lower right", ncols=2, title="target precision $\\varepsilon$")
+    ax_levels.set_ylim(1e-1, 1e7)
 
     fn = (
         PLOT_DIR
@@ -181,14 +184,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--nsamp_pilot",
         type=int,
-        default=50_000,
+        default=10_000,
         help="Number of samples for the pilot run.",
     )
 
     parser.add_argument(
         "--nlevels_pilot",
         type=int,
-        default=8,
+        default=6,
         help="Number of levels for the pilot run.",
     )
 
