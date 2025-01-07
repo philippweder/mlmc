@@ -176,6 +176,7 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
     fig_cost.savefig(fn)
     logger.info(f"Plot saved to {fn}")
 
+argParse = 1 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -184,14 +185,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--nsamp_pilot",
         type=int,
-        default=10_000,
+        default=50_000,
         help="Number of samples for the pilot run.",
     )
 
     parser.add_argument(
         "--nlevels_pilot",
         type=int,
-        default=6,
+        default=8,
         help="Number of levels for the pilot run.",
     )
 

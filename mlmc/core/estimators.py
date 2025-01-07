@@ -190,6 +190,8 @@ def mlmc(nsamps: List[int], h_coarse: float, option: Option) -> Dict[str, float]
 
     for l, (h, nsamp) in enumerate(zip(h_values, nsamps)):
         pc, pf = mlmc_level(nsamp, h, option)
+        #the above returns payoff coarse (pc) and payoff fine (pf)
+        #for hcoarse = h, and h fine = h/2. 
 
         if l == 0:
             level_means[l] = np.mean(pc)

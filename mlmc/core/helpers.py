@@ -109,7 +109,7 @@ def compute_optimal_samps(
     # optimal_nlevels = int(np.ceil(np.log2(E0 / eps) / alpha))
     optimal_nlevels = int(np.ceil((np.log2(E0 / eps) - np.log2(1 - 2 ** (-alpha))) / alpha))
 
-    if np.allclose([beta], [gamma]):
+    if np.allclose([beta], [gamma]): #if beta \approx gamma
 
         N_l = lambda l: int(np.ceil(2 ** (-l) * (optimal_nlevels + 1) * V0 / eps**2))
 

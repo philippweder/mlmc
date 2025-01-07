@@ -82,7 +82,7 @@ def main(
         pbar.set_postfix({"eps": eps})
         optimal_L, optimal_nsamps = compute_optimal_samps(
             E0, V0, eps, alpha=alpha, beta=beta
-        )
+        ) 
         logger.info(f"alpha: {alpha}, beta: {beta}")
         logger.info(f"Optimal number of levels: {optimal_L}")
         logger.info(f"Optimal number of samples: {optimal_nsamps}")
@@ -160,58 +160,71 @@ def main(
     logger.info(f"Results saved to {out_path_nlevels}")
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Script to analyze the variation of the MSE for the MLMC estimator."
-    )
-    parser.add_argument(
-        "--eps",
-        type=float,
-        nargs="+",
-        default=[1e-5, 5e-5, 1e-4, 5e-4, 1e-3],
-        help="Target accuracies epsilon for which to compute the MLMC estimator",
-    )
-    parser.add_argument(
-        "--nsamp_pilot",
-        type=int,
-        default=10_000,
-        help="Number of samples for the pilot run.",
-    )
-    parser.add_argument(
-        "--nlevels_pilot",
-        type=int,
-        default=6,
-        help="Number of levels for the pilot run.",
-    )
-    parser.add_argument(
-        "--alpha",
-        "-a",
-        type=float,
-        default=None,
-        help="Prescribed decay of biase. Set to none to estimate it.",
-    )
-    parser.add_argument(
-        "--beta",
-        "-b",
-        type=float,
-        default=None,
-        help="Prescribed decay of variance. Set to none to estimate it.",
-    )
-    parser.add_argument(
-        "--gamma",
-        "-g",
-        type=float,
-        default=1.0,
-        help="Prescribed growth of computational costs.",
-    )
-    args = parser.parse_args()
+argParse = 1 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
-    main(
-        args.eps,
-        args.nsamp_pilot,
-        args.nlevels_pilot,
-        DATA_DIR,
-        alpha=args.alpha,
-        beta=args.beta,
-        gamma=args.gamma,
-    )
+if argParse:
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(
+            description="Script to analyze the variation of the MSE for the MLMC estimator."
+        )
+        parser.add_argument(
+            "--eps",
+            type=float,
+            nargs="+",
+            default=[1e-5, 5e-5, 1e-4, 5e-4, 1e-3],
+            help="Target accuracies epsilon for which to compute the MLMC estimator",
+        )
+        parser.add_argument(
+            "--nsamp_pilot",
+            type=int,
+            default=10_000,
+            help="Number of samples for the pilot run.",
+        )
+        parser.add_argument(
+            "--nlevels_pilot",
+            type=int,
+            default=6,
+            help="Number of levels for the pilot run.",
+        )
+        parser.add_argument(
+            "--alpha",
+            "-a",
+            type=float,
+            default=None,
+            help="Prescribed decay of biase. Set to none to estimate it.",
+        )
+        parser.add_argument(
+            "--beta",
+            "-b",
+            type=float,
+            default=None,
+            help="Prescribed decay of variance. Set to none to estimate it.",
+        )
+        parser.add_argument(
+            "--gamma",
+            "-g",
+            type=float,
+            default=1.0,
+            help="Prescribed growth of computational costs.",
+        )
+        args = parser.parse_args()
+    
+        main(
+            args.eps,
+            args.nsamp_pilot,
+            args.nlevels_pilot,
+            DATA_DIR,
+            alpha=args.alpha,
+            beta=args.beta,
+            gamma=args.gamma,
+        )
+else:
+    if __name__ == "__main__":
+        main( eps_val=[1e-5, 5e-5, 1e-4, 5e-4, 1e-3],
+            nsamp_pilot= 20_000,
+            nlevels_pilot= 7,
+            out_dir= DATA_DIR,
+            alpha= 1.0,
+            beta= 1.0,
+            gamma= 1,
+            )

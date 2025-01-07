@@ -70,7 +70,7 @@ def main(nsamp_in: int, nlevels:int, style: str = NATURE, usetex: bool = False) 
     
 
 
-argParse = 1 #set to zero if you run the file from an IDE, to 1 to run from command line 
+argParse = 0 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
 if argParse:
     if __name__ == "__main__":
