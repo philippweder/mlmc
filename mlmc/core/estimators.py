@@ -46,7 +46,7 @@ def standard_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
 
     S = np.zeros((nsamp, nsteps + 1))
     S[:, 0] = option.S0
-    dW = np.random.standard_normal((nsamp, nsteps))
+    dW = np.random.standard_normal((nsamp, nsteps)) # N(0,1)
     S = batch_simulate_path(S, option.r, h, option.sigma, dW, nsteps, nsamp)
     payoffs = option.payoff(S, h)
     result = {
@@ -91,7 +91,7 @@ def gbm_likelihood_ratio(
     return np.exp(((R - r) * (R + r - sigma**2) * T - 2 * x) / (2 * sigma**2))
 
 
-def ismc(nsamp: int, h: float, option: Option, R: float) -> Dict[str, float]:
+def is_mc(nsamp: int, h: float, option: Option, R: float) -> Dict[str, float]:
     nsteps = int(option.T / h)
 
     S = np.zeros((nsamp, nsteps + 1))
@@ -131,7 +131,8 @@ def mlmc_level(nsamp: int, h: float, option: Option) -> Tuple[float, float]:
     )
 
     payoffs_fine = option.payoff(S_fine, h_fine)
-
+    #print(f"E payoff fine: {payoffs_fine[0]:.6f}")
+    
     dW_coarse = (dW_fine[:, 0::2] + dW_fine[:, 1::2]) / np.sqrt(2.0)
     S_coarse = batch_simulate_path(
         S_coarse, option.r, h, option.sigma, dW_coarse, nsteps_coarse, nsamp

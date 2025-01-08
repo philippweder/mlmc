@@ -155,43 +155,50 @@ def main(
     df_nlevels.to_csv(out_path_nlevels, index=False)
     logger.info(f"Results saved to {out_path_nlevels}")
 
+argParse = 0 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Script to analyze the variation of the MSE for the MLMC estimator."
-    )
-    parser.add_argument(
-        "--eps",
-        type=float,
-        nargs="+",
-        default=[5e-4, 1e-3, 5e-3, 1e-2],
-        help="Target accuracies epsilon for which to compute the MLMC estimator",
-    )
-    parser.add_argument(
-        "--nsamp_pilot",
-        type=int,
-        default=50_000,
-        help="Number of samples for the pilot run.",
-    )
-    parser.add_argument(
-        "--nlevels_pilot",
-        type=int,
-        default=8,
-        help="Number of levels for the pilot run.",
-    )
-    parser.add_argument(
-        "--gamma",
-        "-g",
-        type=float,
-        default=1.0,
-        help="Prescribed growth of computational costs.",
-    )
-    args = parser.parse_args()
+if argParse:
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(
+            description="Script to analyze the variation of the MSE for the MLMC estimator."
+        )
+        parser.add_argument(
+            "--eps",
+            type=float,
+            nargs="+",
+            default=[5e-4, 1e-3, 5e-3, 1e-2],
+            help="Target accuracies epsilon for which to compute the MLMC estimator",
+        )
+        parser.add_argument(
+            "--nsamp_pilot",
+            type=int,
+            default=50_000,
+            help="Number of samples for the pilot run.",
+        )
+        parser.add_argument(
+            "--nlevels_pilot",
+            type=int,
+            default=8,
+            help="Number of levels for the pilot run.",
+        )
+        parser.add_argument(
+            "--gamma",
+            "-g",
+            type=float,
+            default=1.0,
+            help="Prescribed growth of computational costs.",
+        )
+        args = parser.parse_args()
+    
+        main(
+            args.eps,
+            args.nsamp_pilot,
+            args.nlevels_pilot,
+            DATA_DIR,
+            gamma=args.gamma,
+        )
+else:
+    if __name__ == "__main__":
+        main(eps_val = [5e-4, 1e-3, 5e-3, 1e-2], nsamp_pilot= 20_000, nlevels_pilot= 7,out_dir= DATA_DIR)
 
-    main(
-        args.eps,
-        args.nsamp_pilot,
-        args.nlevels_pilot,
-        DATA_DIR,
-        gamma=args.gamma,
-    )
+        

@@ -134,11 +134,11 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
             cost += nsamp * (2 ** (l + 1) + 2**l)
         mlmc_cost.append(cost)
     mlmc_trend = (
-        df["eps"] ** (-2)
-        * np.log(df["eps"]) ** 2
-        * mlmc_cost[-1]
-        * (df["eps"].iloc[-1] ** 2)
-        / (np.log(df["eps"])) ** 2
+    df["eps"] ** (-2)
+    * np.log(df["eps"]) ** 2
+    * mlmc_cost[0]
+    * (df["eps"].iloc[0] ** 2)
+    / (np.log(df["eps"].iloc[0])) ** 2
     )
 
     mc_cost = df["nsamp_mc"] * (2 ** df["nlevels"])
@@ -161,7 +161,7 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
     ax_cost.loglog(df["eps"], mlmc_cost, marker="o", label=f"MLMC")
     ax_cost.loglog(df["eps"], mc_cost, marker="s", label=f"MC")
     ax_cost.set_xlabel("target precision $\\varepsilon$")
-    ax_cost.set_ylabel("normalized cost")
+    ax_cost.set_ylabel("Normalized cost")
     ax_cost.set_ylim(1e1, 1e12)
 
     h, l = ax_cost.get_legend_handles_labels()
@@ -176,40 +176,45 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
     fig_cost.savefig(fn)
     logger.info(f"Plot saved to {fn}")
 
-argParse = 1 #set to zero if you run the file from an IDE, to 1 to run from command line 
+argParse = 0 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Script to plot the results of the MLMC simulation."
-    )
-    parser.add_argument(
-        "--nsamp_pilot",
-        type=int,
-        default=50_000,
-        help="Number of samples for the pilot run.",
-    )
-
-    parser.add_argument(
-        "--nlevels_pilot",
-        type=int,
-        default=8,
-        help="Number of levels for the pilot run.",
-    )
-
-    parser.add_argument(
-        "--usetex",
-        action="store_true",
-        help="Use LaTeX for the plots.",
-    )
-    parser.add_argument(
-        "--coeffs",
-        "-c",
-        type=str,
-        default="prescribed",
-        choices=["estimated", "prescribed"],
-        help="""Whether to use the results from estimating
-          alpha and beta or the results from a fixed value""",
-    )
-
-    args = parser.parse_args()
-    main(args.nsamp_pilot, args.nlevels_pilot, args.coeffs, args.usetex)
+if argParse:
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(
+            description="Script to plot the results of the MLMC simulation."
+        )
+        parser.add_argument(
+            "--nsamp_pilot",
+            type=int,
+            default=50_000,
+            help="Number of samples for the pilot run.",
+        )
+    
+        parser.add_argument(
+            "--nlevels_pilot",
+            type=int,
+            default=8,
+            help="Number of levels for the pilot run.",
+        )
+    
+        parser.add_argument(
+            "--usetex",
+            action="store_true",
+            help="Use LaTeX for the plots.",
+        )
+        parser.add_argument(
+            "--coeffs",
+            "-c",
+            type=str,
+            default="prescribed",
+            choices=["estimated", "prescribed"],
+            help="""Whether to use the results from estimating
+              alpha and beta or the results from a fixed value""",
+        )
+    
+        args = parser.parse_args()
+        main(args.nsamp_pilot, args.nlevels_pilot, args.coeffs, args.usetex)
+else:
+    if __name__ == "__main__":
+        main(nsamp_pilot= 20_000, nlevels_pilot= 7, coeffs="prescribed", usetex=True)
+     
