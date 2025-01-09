@@ -28,6 +28,7 @@ def batch_simulate_path(
     dW: np.ndarray,
     nsteps: int,
     nsamp: int,
+    use_non_normalized_dW: bool = False  # Set to true if you need to use dW \~ N(0,1)
 ) -> np.ndarray:
 
     nsamp = S.shape[0]
@@ -36,10 +37,12 @@ def batch_simulate_path(
     for n in prange(nsamp):
         for m in range(nsteps):
             # Update stock price using Euler-Maruyama scheme
-            S[n, m + 1] = (1.0 + r * h + sigma * sqrt_h * dW[n, m]) * S[n, m]
+            if use_non_normalized_dW:
+                S[n, m + 1] = (1.0 + r * h + sigma * dW[n, m]) * S[n, m]
+            else:
+                S[n, m + 1] = (1.0 + r * h + sigma * sqrt_h * dW[n, m]) * S[n, m]
 
     return S
-
 
 def standard_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
     nsteps = int(option.T / h)
@@ -91,12 +94,37 @@ def gbm_likelihood_ratio(
     return np.exp(((R - r) * (R + r - sigma**2) * T - 2 * x) / (2 * sigma**2))
 
 
+def is_mc_drift_in_bm(nsamp: int, h: float, option: Option, R: float) -> Dict[str, float]:
+    nsteps = int(option.T / h)
+    
+    S = np.zeros((nsamp, nsteps + 1))
+    S[:,0] = option.S0
+    phi = (R - option.r)/option.sigma #R is the new interest rate, higher than r
+    dW_drift = np.random.normal(loc=phi*h, scale=np.sqrt(h), size=(nsamp, nsteps))
+    
+    # simulate paths with higher interest rate R, this is embedded into dW_drift
+    # so the option.r parameter is not an error.
+    S = batch_simulate_path(S, option.r, h, option.sigma, dW_drift, nsteps, nsamp,  use_non_normalized_dW=True)
+
+    payoffs = option.payoff(S, h)
+    
+    # compute likelihood ratio
+    w = np.exp(0.5*nsteps*h*phi**2 - phi*np.sum(dW_drift, axis=1))
+
+    result = {
+        "esp": np.mean(payoffs * w),
+        "var": np.var(payoffs * w, ddof=1) / nsamp,
+    }
+
+    return result
+    
+    
 def is_mc(nsamp: int, h: float, option: Option, R: float) -> Dict[str, float]:
     nsteps = int(option.T / h)
 
     S = np.zeros((nsamp, nsteps + 1))
     S[:, 0] = option.S0
-    dW = np.random.standard_normal((nsamp, nsteps))
+    dW = np.random.standard_normal((nsamp, nsteps)) # N(0,1)
  
     # simulate paths with higher interest rate R
     S = batch_simulate_path(S, R, h, option.sigma, dW, nsteps, nsamp)

@@ -32,7 +32,8 @@ def main(
     else:
         est_str = "prescribed"
 
-    np.random.seed(9434)
+    #np.random.seed(9434)
+    np.random.seed(9433)
     option = AsianOption()
     h_coarse = 0.2  # this value for h0 is forced by the statement of the project.
 
@@ -160,7 +161,7 @@ def main(
     logger.info(f"Results saved to {out_path_nlevels}")
 
 
-argParse = 1 #set to zero if you run the file from an IDE, to 1 to run from command line 
+argParse = 0 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
 if argParse:
     if __name__ == "__main__":
@@ -220,9 +221,9 @@ if argParse:
         )
 else:
     if __name__ == "__main__":
-        main( eps_val=[1e-5, 5e-5, 1e-4, 5e-4, 1e-3],
-            nsamp_pilot= 20_000,
-            nlevels_pilot= 7,
+        main( eps_val=[5e-6, 1e-5, 5e-5, 1e-4, 2e-4],
+            nsamp_pilot= 50_000,
+            nlevels_pilot= 6,
             out_dir= DATA_DIR,
             alpha= 1.0,
             beta= 1.0,

@@ -88,6 +88,7 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
     ax_cpu.set_xlabel(r"target precision $\varepsilon$")
     ax_cpu.set_ylabel("CPU time [s]")
     ax_cpu.legend(loc="best")
+    #ax_cpu.set_ylim(1e3, 1e-3) 
 
     fn = (
         PLOT_DIR
@@ -113,7 +114,7 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
     ax_levels.set_xlabel("level $\ell$")
     ax_levels.set_ylabel("number of samples $N_{\ell}$")
     ax_levels.legend(loc="lower right", ncols=2, title="target precision $\\varepsilon$")
-    ax_levels.set_ylim(1e-1, 1e7)
+    ax_levels.set_ylim(1e-2, 1e8)
 
     fn = (
         PLOT_DIR
@@ -161,7 +162,7 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
     ax_cost.loglog(df["eps"], mlmc_cost, marker="o", label=f"MLMC")
     ax_cost.loglog(df["eps"], mc_cost, marker="s", label=f"MC")
     ax_cost.set_xlabel("target precision $\\varepsilon$")
-    ax_cost.set_ylabel("Normalized cost")
+    ax_cost.set_ylabel("normalized cost")
     ax_cost.set_ylim(1e1, 1e12)
 
     h, l = ax_cost.get_legend_handles_labels()
@@ -216,5 +217,5 @@ if argParse:
         main(args.nsamp_pilot, args.nlevels_pilot, args.coeffs, args.usetex)
 else:
     if __name__ == "__main__":
-        main(nsamp_pilot= 20_000, nlevels_pilot= 7, coeffs="prescribed", usetex=True)
+        main(nsamp_pilot= 50_000, nlevels_pilot= 6, coeffs="prescribed", usetex=True)
      
