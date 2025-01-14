@@ -137,14 +137,15 @@ def main(nsamp_pilot: int, nlevels_pilot: int, usetex: bool = False) -> None:
     trend_exp = -2 - (1 - beta) / alpha
     mlmc_trend = (
         df["eps"] ** trend_exp
-        * mlmc_cost[-1]
-        / (df["eps"].iloc[-1] ** trend_exp)
+        * mlmc_cost[0]
+        / (df["eps"].iloc[0] ** trend_exp)
     )
 
 
 
     mc_cost = df["nsamp_mc"] * (2 ** df["nlevels"])
-    mc_trend = df["eps"] ** (-3) * mc_cost.iloc[-1] * (df["eps"].iloc[-1] ** 3)
+    mc_trend = df["eps"] ** (-3) * mc_cost.iloc[0] * (df["eps"].iloc[0] ** 3)
+
 
     ax_cost.loglog(
         df["eps"],
@@ -178,30 +179,38 @@ def main(nsamp_pilot: int, nlevels_pilot: int, usetex: bool = False) -> None:
     fig_cost.savefig(fn)
     logger.info(f"Plot saved to {fn}")
 
+argParse = 0 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Script to plot the results of the MLMC simulation."
-    )
-    parser.add_argument(
-        "--nsamp_pilot",
-        type=int,
-        default=50_000,
-        help="Number of samples for the pilot run.",
-    )
+if argParse:
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(
+            description="Script to plot the results of the MLMC simulation."
+        )
+        
+        parser.add_argument(
+            "--nsamp_pilot",
+            type=int,
+            default=50_000,
+            help="Number of samples for the pilot run.",
+        )
+    
+        parser.add_argument(
+            "--nlevels_pilot",
+            type=int,
+            default=8,
+            help="Number of levels for the pilot run.",
+        )
+    
+        parser.add_argument(
+            "--usetex",
+            action="store_true",
+            help="Use LaTeX for the plots.",
+        )
+    
+        args = parser.parse_args()
+        main(args.nsamp_pilot, args.nlevels_pilot, args.usetex)
+else:
+    if __name__ == "__main__":
+        main(nsamp_pilot= 50_000, nlevels_pilot= 8, usetex=True)
 
-    parser.add_argument(
-        "--nlevels_pilot",
-        type=int,
-        default=8,
-        help="Number of levels for the pilot run.",
-    )
-
-    parser.add_argument(
-        "--usetex",
-        action="store_true",
-        help="Use LaTeX for the plots.",
-    )
-
-    args = parser.parse_args()
-    main(args.nsamp_pilot, args.nlevels_pilot, args.usetex)
+    

@@ -99,7 +99,8 @@ def main(
 
         nsamp_crude = int(np.ceil(V_mc / eps**2))
 
-        h_crude = h_coarse * (2**optimal_L)
+        h_crude = h_coarse / (2**optimal_L)
+        logger.info(f"Step size for standard mc: {h_crude:.6f}")
         start_mc = time.process_time()
         result_crude = standard_mc(nsamp_crude, h_crude, option)
         end_mc = time.process_time()
@@ -199,6 +200,6 @@ if argParse:
         )
 else:
     if __name__ == "__main__":
-        main(eps_val = [5e-4, 1e-3, 5e-3, 1e-2], nsamp_pilot= 20_000, nlevels_pilot= 7,out_dir= DATA_DIR)
+        main(eps_val = [5e-4, 1e-3, 5e-3, 1e-2], nsamp_pilot= 50_000, nlevels_pilot= 8,out_dir= DATA_DIR)
 
         

@@ -104,7 +104,8 @@ def main(
 
         nsamp_crude = int(np.ceil(V_mc / eps**2))
 
-        h_crude = h_coarse * (2**optimal_L)
+        h_crude = h_coarse / (2**optimal_L)
+        logger.info(f"Step size for standard mc: {h_crude:.6f}")
         start_mc = time.process_time()
         result_crude = standard_mc(nsamp_crude, h_crude, option)
         end_mc = time.process_time()
