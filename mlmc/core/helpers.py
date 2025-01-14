@@ -10,6 +10,17 @@ from mlmc.core.estimators import coarse_fine_mc
 def fit_exponential_decay(
     x: np.ndarray, y: np.ndarray, base: float = 2
 ) -> Tuple[float, float]:
+    """
+    Fit an exponential decay function to the given data.
+
+    Parameters:
+    x (np.ndarray): The independent variable data.
+    y (np.ndarray): The dependent variable data.
+    base (float): The base of the exponential function. Default is 2.
+
+    Returns:
+    Tuple[float, float]: The fitted parameters (C, alpha) of the exponential function.
+    """
     fun = lambda x, C, alpha: C * base ** (-alpha * x)
     popt, _ = curve_fit(fun, x, y)
     return tuple(popt)
@@ -26,22 +37,24 @@ def mlmc_pilot(
     gamma: float = 1,
 ) -> Dict[str, float]:
     """
-    Performs a Multilevel Monte Carlo (MLMC) pilot un to estimate the bias and variance decay.
+    Perform a pilot run for Multilevel Monte Carlo (MLMC) to estimate parameters.
 
     Parameters:
-    nlevels (int): Number of levels in the MLMC hierarchy.
-    nsamp (int): Number of samples to use at each level.
-    h_coarse (int): Coarse level discretization parameter.
-    payoff (Callable): Payoff function to evaluate.
-    **payoff_kwargs: Additional keyword arguments to pass to the payoff function.
+    nlevels (int): Number of levels.
+    nsamp (int): Number of samples.
+    h_coarse (int): Coarse level step size.
+    option (Option): Option object containing parameters for the simulation.
+    nruns (int): Number of runs. Default is 1.
+    alpha (float | None): Decay rate of the bias. Default is None.
+    beta (float | None): Decay rate of the variance. Default is None.
+    gamma (float): Parameter for the cost model. Default is 1.
 
     Returns:
-    Dict[str, float]: A dictionary containing:
-        - 'biases': Array of bias estimates for each level.
-        - 'variances': Array of variance estimates for each level.
-        - 'E0': Estimated bias constant.
-        - 'V0': Estimated variance constant.
+    Dict[str, float]: A dictionary containing estimated parameters and statistics.
     """
+    
+
+
     if (alpha is not None and alpha <= 0) or (beta is not None and beta <= 0):
         raise ValueError(f"alpha and beta must be strictly positive."
                          "Set to `None` if they should be estimated from the pilot run")
@@ -106,6 +119,27 @@ def compute_optimal_samps(
     beta: float = 1,
     gamma: float = 1,
 ) -> Tuple[int, List[int]]:
+    """
+    Compute the optimal number of samples for each level in MLMC.
+
+    This function computes the optimal number of samples for each level in MLMC
+    according to the complexity theorem in [1].
+
+    [1] M. B. Giles, ‘Multilevel Monte Carlo methods’, Acta Numerica, vol. 24,
+     pp. 259–328, May 2015, doi: 10.1017/S096249291500001X.
+
+
+    Parameters:
+    E0 (float): Initial bias estimate.
+    V0 (float): Initial variance estimate.
+    eps (float): Desired accuracy.
+    alpha (float): Decay rate of the bias. Default is 1.
+    beta (float): Decay rate of the variance. Default is 1.
+    gamma (float): Parameter for the cost model. Default is 1.
+
+    Returns:
+    Tuple[int, List[int]]: The optimal number of levels and the number of samples for each level.
+    """
     # optimal_nlevels = int(np.ceil(np.log2(E0 / eps) / alpha))
     optimal_nlevels = int(np.ceil((np.log2(E0 / eps) - np.log2(1 - 2 ** (-alpha))) / alpha))
 

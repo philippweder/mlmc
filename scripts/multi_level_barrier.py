@@ -41,14 +41,9 @@ def main(
     nsamps_mc = np.zeros(len(eps_val))
     cpu_times_mc = np.zeros(len(eps_val))
 
+    # run the pilot run to estimate E0, alpha, beta, V0
     pilot_results = mlmc_pilot(
-        nlevels_pilot,
-        nsamp_pilot,
-        h_coarse,
-        option,
-        alpha=None,
-        beta=None,
-        gamma=gamma
+        nlevels_pilot, nsamp_pilot, h_coarse, option, alpha=None, beta=None, gamma=gamma # alpha and beta are estimated in the pilot run
     )
     E0 = pilot_results["E0"]
     alpha = pilot_results["alpha"]
@@ -83,24 +78,26 @@ def main(
         logger.info(f"Optimal number of levels: {optimal_L}")
         logger.info(f"Optimal number of samples: {optimal_nsamps}")
 
-        # below : run the actual MLMC simulation using optimal Nl and L
+        # run the actual MLMC simulation using optimal Nl and L
         start_mlmc = time.process_time()
         result = mlmc(optimal_nsamps, h_coarse, option)
         end_mlmc = time.process_time()
 
         cpu_times_mlmc[i] = end_mlmc - start_mlmc
         means_mlmc[i] = result["esp"]
-        variances_mlmc[i] = result["var"]  # this is var(Yl - Yl-1)/nsamp
+        variances_mlmc[i] = result["var"]  #  var(Y_l - Y_{l-1})/nsamp
         nlevels[i] = optimal_L + 1
 
         optimal_nsamps_list.append(optimal_nsamps)
 
-        logger.info(f"CPU Time MLMC: {cpu_times_mlmc[i]:.6f} s")
+        logger.info(f"CPU time MLMC: {cpu_times_mlmc[i]:.6f} s")
 
         nsamp_crude = int(np.ceil(V_mc / eps**2))
 
         h_crude = h_coarse / (2**optimal_L)
-        logger.info(f"Step size for standard mc: {h_crude:.6f}")
+        logger.info(f"Number of samples for MC: {nsamp_crude}")
+        logger.info(f"MC step size: {h_crude:.6f}")
+
         start_mc = time.process_time()
         result_crude = standard_mc(nsamp_crude, h_crude, option)
         end_mc = time.process_time()
@@ -133,8 +130,7 @@ def main(
     df_outputs["beta"] = beta
 
     out_path = (
-        out_dir
-        / f"mlmc-nsamp_pilot={nsamp_pilot}_nlevels_pilot={nlevels_pilot}.csv"
+        out_dir / f"mlmc-nsamp_pilot={nsamp_pilot}_nlevels_pilot={nlevels_pilot}.csv"
     )
     df_outputs.to_csv(out_path, index=False)
     logger.info(f"Results saved to {out_path}")
@@ -156,50 +152,43 @@ def main(
     df_nlevels.to_csv(out_path_nlevels, index=False)
     logger.info(f"Results saved to {out_path_nlevels}")
 
-argParse = 0 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
-if argParse:
-    if __name__ == "__main__":
-        parser = argparse.ArgumentParser(
-            description="Script to analyze the variation of the MSE for the MLMC estimator."
-        )
-        parser.add_argument(
-            "--eps",
-            type=float,
-            nargs="+",
-            default=[5e-4, 1e-3, 5e-3, 1e-2],
-            help="Target accuracies epsilon for which to compute the MLMC estimator",
-        )
-        parser.add_argument(
-            "--nsamp_pilot",
-            type=int,
-            default=50_000,
-            help="Number of samples for the pilot run.",
-        )
-        parser.add_argument(
-            "--nlevels_pilot",
-            type=int,
-            default=8,
-            help="Number of levels for the pilot run.",
-        )
-        parser.add_argument(
-            "--gamma",
-            "-g",
-            type=float,
-            default=1.0,
-            help="Prescribed growth of computational costs.",
-        )
-        args = parser.parse_args()
-    
-        main(
-            args.eps,
-            args.nsamp_pilot,
-            args.nlevels_pilot,
-            DATA_DIR,
-            gamma=args.gamma,
-        )
-else:
-    if __name__ == "__main__":
-        main(eps_val = [5e-4, 1e-3, 5e-3, 1e-2], nsamp_pilot= 50_000, nlevels_pilot= 8,out_dir= DATA_DIR)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Script to analyze the variation of the MSE for the MLMC estimator."
+    )
+    parser.add_argument(
+        "--eps",
+        type=float,
+        nargs="+",
+        default=[5e-4, 1e-3, 5e-3, 1e-2],
+        help="Target accuracies epsilon for which to compute the MLMC estimator",
+    )
+    parser.add_argument(
+        "--nsamp_pilot",
+        type=int,
+        default=50_000,
+        help="Number of samples for the pilot run.",
+    )
+    parser.add_argument(
+        "--nlevels_pilot",
+        type=int,
+        default=8,
+        help="Number of levels for the pilot run.",
+    )
+    parser.add_argument(
+        "--gamma",
+        "-g",
+        type=float,
+        default=1.0,
+        help="Prescribed growth of computational costs.",
+    )
+    args = parser.parse_args()
 
-        
+    main(
+        args.eps,
+        args.nsamp_pilot,
+        args.nlevels_pilot,
+        DATA_DIR,
+        gamma=args.gamma,
+    )
