@@ -139,6 +139,7 @@ def main(nsamp_pilot: int, nlevels_pilot: int, usetex: bool = False) -> None:
         mlmc_cost.append(cost)
 
     trend_exp = -2 - (1 - beta) / alpha
+    logger.info(f"trend exponent: {trend_exp}")
     mlmc_trend = (
         df["eps"] ** trend_exp
         * mlmc_cost[0]
@@ -148,7 +149,7 @@ def main(nsamp_pilot: int, nlevels_pilot: int, usetex: bool = False) -> None:
 
 
     mc_cost = df["nsamp_mc"] * (2 ** df["nlevels"])
-    mc_trend = df["eps"] ** (-3) * mc_cost.iloc[0] * (df["eps"].iloc[0] ** 3)
+    mc_trend = df["eps"] ** (-(2 + 1 / alpha)) * mc_cost.iloc[0] * (df["eps"].iloc[0] ** (2 + 1 / alpha))
 
 
     ax_cost.loglog(
@@ -161,7 +162,7 @@ def main(nsamp_pilot: int, nlevels_pilot: int, usetex: bool = False) -> None:
     ax_cost.loglog(
         df["eps"],
         mc_trend,
-        label="$\mathcal{O}(\\varepsilon^{-3})$",
+        label="$\mathcal{O}(\\varepsilon^{-(2 + 1/\\alpha)})$",
         color="black",
         ls="-.",
     )
