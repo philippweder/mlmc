@@ -47,9 +47,7 @@ def main(
 
         # pilot run
         h_coarse = 0.2
-        result_pilot = coarse_fine_mc(
-            nsamp_pilot, h_coarse, option
-        )
+        result_pilot = coarse_fine_mc(nsamp_pilot, h_coarse, option)
 
         # estimate optimal sample sizes
         optimal_ratio = np.sqrt(
@@ -59,9 +57,7 @@ def main(
         nsamp1 = int(np.ceil(optimal_ratio * nsamp0))
 
         # run two-level Monte Carlo
-        result_2l = two_level_mc(
-            nsamp0, nsamp1, h_coarse, option
-        )
+        result_2l = two_level_mc(nsamp0, nsamp1, h_coarse, option)
 
         means_2l[i] = result_2l["esp"]
         variances_2l[i] = result_2l["var"]
@@ -73,9 +69,7 @@ def main(
         # run comparable crude Monte Carlo
         ncrude = int(np.ceil(nsamp0 * (0.5 + optimal_ratio)))
         nsamp_crudes[i] = ncrude
-        result_crude = standard_mc(
-            ncrude, 0.5 * h_coarse, option
-        )
+        result_crude = standard_mc(ncrude, 0.5 * h_coarse, option)
 
         means_crude[i] = result_crude["esp"]
         variances_crude[i] = result_crude["var"]
