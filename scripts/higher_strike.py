@@ -71,17 +71,11 @@ def main(nsamp: int, h: float, VRT: str="antithetic", payoff: str="both") -> Non
                 f"Barrier option (importance sampling changing drift in b.m.) | E[Y]: {barrier_new_is['esp']}, Var[Y]: {barrier_new_is['var']}"
             )
 
-argParse = 0 #set to zero if you run the file from an IDE, to 1 to run from command line 
-
-if argParse:
-    if __name__ == "__main__":
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--nsamp", type=int, default=1_000_000)
-        parser.add_argument("--h", type=float, default=0.01)
-        parser.add_argument("--VRT", type=str, default="antithetic")
-        parser.add_argument("--payoff", type=str, default="both") #which payoff to use
-        args = parser.parse_args()
-        main(args.nsamp, args.h, args.VRT, args.payoff)
-else:
-    if __name__ == "__main__":
-        main(nsamp=1_00_000, h=0.001, VRT = "IS", payoff = "asian_option")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--nsamp", type=int, default=1_000_000)
+    parser.add_argument("--h", type=float, default=0.01)
+    parser.add_argument("--VRT", type=str, default="IS")
+    parser.add_argument("--payoff", type=str, default="both") #which payoff to use
+    args = parser.parse_args()
+    main(args.nsamp, args.h, args.VRT, args.payoff)
