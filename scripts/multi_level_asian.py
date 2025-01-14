@@ -32,7 +32,7 @@ def main(
     else:
         est_str = "prescribed"
 
-    np.random.seed(9433)
+    np.random.seed(9434)
     option = AsianOption()
     h_coarse = 0.2  # this value for h0 is forced by the statement of the project.
 
