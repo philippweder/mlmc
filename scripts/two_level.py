@@ -112,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--nsamp_base",
         "-b",
-        default=10,
+        default=2,
         type=int,
         help="Base for the number of samples.",
     )

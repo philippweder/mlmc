@@ -70,7 +70,7 @@ if __name__ == "__main__":
         "--nsteps_max", type=int, default=10_000, help="Maximal time step"
     )
     parser.add_argument(
-        "--nsteps_base", type=int, default=5, help="Basis for time step"
+        "--nsteps_base", type=int, default=2, help="Basis for time step"
     )
     parser.add_argument("--nsamp", type=int, default=10000, help="Number of samples")
     args = parser.parse_args()
