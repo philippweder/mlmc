@@ -47,14 +47,16 @@ def main(
     )
     E0 = pilot_results["E0"]
     alpha = pilot_results["alpha"]
+    std_E0, std_alpha = pilot_results["bias_stds"]
     V0 = pilot_results["V0"]
     beta = pilot_results["beta"]
     V_mc = pilot_results["Vfine"]
+    std_V0, std_beta = pilot_results["var_stds"]
 
-    logger.info(f"alpha: {alpha}")
-    logger.info(f"beta: {beta}")
-    logger.info(f"E0: {E0:5e}")
-    logger.info(f"V0: {V0:5e}")
+    logger.info(f"alpha: {alpha} ± {std_alpha:5e}")
+    logger.info(f"beta: {beta} ± {std_beta:5e}")
+    logger.info(f"E0: {E0:5e} ± {std_E0:5e}")
+    logger.info(f"V0: {V0:5e} ± {std_V0:5e}")
 
     pilot_df = {
         "biases": pilot_results["biases"],

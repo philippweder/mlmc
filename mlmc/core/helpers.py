@@ -9,7 +9,7 @@ from mlmc.core.estimators import coarse_fine_mc
 
 def fit_exponential_decay(
     x: np.ndarray, y: np.ndarray, base: float = 2
-) -> Tuple[float, float]:
+) -> Tuple[Tuple[float, float], np.ndarray]:
     """
     Fit an exponential decay function to the given data.
 
@@ -20,10 +20,12 @@ def fit_exponential_decay(
 
     Returns:
     Tuple[float, float]: The fitted parameters (C, alpha) of the exponential function.
+    np.ndarray: The standard deviations of the fitted parameters.
     """
     fun = lambda x, C, alpha: C * base ** (-alpha * x)
-    popt, _ = curve_fit(fun, x, y)
-    return tuple(popt)
+    popt, pcov= curve_fit(fun, x, y)
+    perr = np.sqrt(np.diag(pcov))
+    return tuple(popt), perr
 
 
 def mlmc_pilot(
@@ -86,8 +88,8 @@ def mlmc_pilot(
     finest_variance /= nruns
 
     if alpha is None or beta is None:
-        E0, alpha = fit_exponential_decay(np.arange(1, nlevels + 1), biases)
-        V0, beta = fit_exponential_decay(np.arange(1, nlevels + 1), diff_variances)
+        (E0, alpha), bias_stds = fit_exponential_decay(np.arange(1, nlevels + 1), biases)
+        (V0, beta), var_stds  = fit_exponential_decay(np.arange(1, nlevels + 1), diff_variances)
 
     else:
         E0 = np.polyfit(
@@ -99,14 +101,19 @@ def mlmc_pilot(
             0,
         )[-1]
 
+        bias_stds = np.zeros(2)
+        var_stds = np.zeros(2)
+
 
     return {
         "biases": biases,
         "variances": diff_variances,  # now this is Var(Yfine - Ycoarse)
         "E0": E0,
         "alpha": alpha,
+        "bias_stds": bias_stds,
         "V0": V0,
         "beta": beta,
+        "var_stds": var_stds,
         "Vfine": finest_variance,
     }
 
