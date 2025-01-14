@@ -17,7 +17,7 @@ To install the project on a new machine, follow these steps:
     ```
     or using
     ```
-    pip install . --editable
+    pip install --editable .
     ```
     if you want to edit the project.
 
