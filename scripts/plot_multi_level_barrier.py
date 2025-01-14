@@ -59,6 +59,7 @@ def main(nsamp_pilot: int, nlevels_pilot: int, usetex: bool = False) -> None:
     ax_bias.set_ylabel("DUMMY", color="white")
     ax_bias.legend(loc="best")
 
+
     ax_variance.loglog(
         levels,
         V0 / (2 ** (beta * levels)),
@@ -73,6 +74,9 @@ def main(nsamp_pilot: int, nlevels_pilot: int, usetex: bool = False) -> None:
     ax_variance.set_yscale("log")
     ax_variance.set_xscale("linear")
     ax_variance.legend(loc="best")
+
+    ax_bias.set_xticks(levels)
+    ax_bias.set_xticklabels([f"${l}$" for l in levels])
 
     fn = (
         PLOT_DIR
