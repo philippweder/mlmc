@@ -102,6 +102,17 @@ def standard_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
 
 
 def antithetic_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
+    """
+    Perform an antithetic variates Monte Carlo simulation for option pricing.
+
+    Parameters:
+    nsamp (int): Number of samples (simulated paths).
+    h (float): Time step size.
+    option (Option): An instance of the Option class containing option parameters.
+
+    Returns:
+    Dict[str, float]: A dictionary containing the estimated expected payoff ('esp') and the variance of the payoff ('var').
+    """
     nsteps = int(option.T / h)
 
     # sample nsamp paths
