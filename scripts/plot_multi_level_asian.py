@@ -177,45 +177,40 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
     fig_cost.savefig(fn)
     logger.info(f"Plot saved to {fn}")
 
-argParse = 0 #set to zero if you run the file from an IDE, to 1 to run from command line 
 
-if argParse:
-    if __name__ == "__main__":
-        parser = argparse.ArgumentParser(
-            description="Script to plot the results of the MLMC simulation."
-        )
-        parser.add_argument(
-            "--nsamp_pilot",
-            type=int,
-            default=50_000,
-            help="Number of samples for the pilot run.",
-        )
-    
-        parser.add_argument(
-            "--nlevels_pilot",
-            type=int,
-            default=8,
-            help="Number of levels for the pilot run.",
-        )
-    
-        parser.add_argument(
-            "--usetex",
-            action="store_true",
-            help="Use LaTeX for the plots.",
-        )
-        parser.add_argument(
-            "--coeffs",
-            "-c",
-            type=str,
-            default="prescribed",
-            choices=["estimated", "prescribed"],
-            help="""Whether to use the results from estimating
-              alpha and beta or the results from a fixed value""",
-        )
-    
-        args = parser.parse_args()
-        main(args.nsamp_pilot, args.nlevels_pilot, args.coeffs, args.usetex)
-else:
-    if __name__ == "__main__":
-        main(nsamp_pilot= 50_000, nlevels_pilot= 6, coeffs="prescribed", usetex=True)
-     
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Script to plot the results of the MLMC simulation."
+    )
+    parser.add_argument(
+        "--nsamp_pilot",
+        type=int,
+        default=50_000,
+        help="Number of samples for the pilot run.",
+    )
+
+    parser.add_argument(
+        "--nlevels_pilot",
+        type=int,
+        default=6,
+        help="Number of levels for the pilot run.",
+    )
+
+    parser.add_argument(
+        "--usetex",
+        action="store_true",
+        help="Use LaTeX for the plots.",
+    )
+    parser.add_argument(
+        "--coeffs",
+        "-c",
+        type=str,
+        default="prescribed",
+        choices=["estimated", "prescribed"],
+        help="""Whether to use the results from estimating
+            alpha and beta or the results from a fixed value""",
+    )
+
+    args = parser.parse_args()
+    main(args.nsamp_pilot, args.nlevels_pilot, args.coeffs, args.usetex)
+
