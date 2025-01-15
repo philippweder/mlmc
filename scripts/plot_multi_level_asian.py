@@ -88,7 +88,6 @@ def main(nsamp_pilot: int, nlevels_pilot: int, coeffs: str="estimated", usetex: 
     ax_cpu.set_xlabel(r"target precision $\varepsilon$")
     ax_cpu.set_ylabel("CPU time [s]")
     ax_cpu.legend(loc="best")
-    #ax_cpu.set_ylim(1e3, 1e-3) 
 
     fn = (
         PLOT_DIR

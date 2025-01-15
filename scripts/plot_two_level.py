@@ -75,7 +75,9 @@ def main(
                     showmeans=True,
                     meanprops = {"markerfacecolor": "black", "markeredgecolor": "black"},
                     medianprops = {"color": "black"})
-    ax_ratio.set_xticks([])
+    ax_ratio.set_xticks([1])
+    ax_ratio.set_xticklabels(["$N_1 / N_0$"])
+    ax_ratio.set_xlabel("DUMMY", color="white")
     
     fn = PLOT_DIR / f"two_level-ratio_nsamp_pilot={nsamp_pilot}.pdf"
     fig_ratio.savefig(fn)
