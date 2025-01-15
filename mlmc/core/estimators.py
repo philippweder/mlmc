@@ -33,68 +33,12 @@ def standard_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
     return result
 
 
-def antithetic_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
-    """
-    Perform an antithetic variates Monte Carlo simulation for option pricing.
-
-    Parameters:
-    nsamp (int): Number of samples (simulated paths).
-    h (float): Time step size.
-    option (Option): An instance of the Option class containing option parameters.
-
-    Returns:
-    Dict[str, float]: A dictionary containing the estimated expected payoff ('esp') and the variance of the payoff ('var').
-    """
-    nsteps = int(option.T / h)
-
-    # sample nsamp paths
-    S = np.zeros((nsamp, nsteps + 1))
-    S[:, 0] = option.S0
-    dW = np.random.standard_normal((nsamp, nsteps))
-    S = batch_simulate_path(S, option.r, h, option.sigma, dW, nsteps, nsamp)
-    payoffs = option.payoff(S, h)
-
-    # sample nsamp paths with the same random numbers but with opposite signs
-    S_antithetic = np.zeros((nsamp, nsteps + 1))
-    S_antithetic[:, 0] = option.S0
-    S_antithetic = batch_simulate_path(
-        S_antithetic, option.r, h, option.sigma, -dW, nsteps, nsamp
-    )
-    payoffs_antithetic = option.payoff(S_antithetic, h)
-
-    payoffs = 0.5 * (payoffs + payoffs_antithetic)
-
-    result = {
-        "esp": np.mean(payoffs),
-        "var": np.var(payoffs, ddof=1) / nsamp,
-    }
-
-    return result
-
-
-def gbm_likelihood_ratio(
-    x: float, r: float, R: float, sigma: float, T: float = 1
-) -> float:
-    """
-    Calculate the likelihood ratio for a Geometric Brownian Motion (GBM) model.
-    Parameters:
-    x (float): The observed value.
-    r (float): The risk-free interest rate.
-    R (float): The drift rate of the GBM.
-    sigma (float): The volatility of the GBM.
-    T (float, optional): The time period over which the GBM is observed. Default is 1.
-    Returns:
-    float: The likelihood ratio for the given parameters.
-    """
-
-    return np.exp(((R - r) * (R + r - sigma**2) * T - 2 * x) / (2 * sigma**2))
-
-
 def is_mc_drift_in_bm(
     nsamp: int, h: float, option: Option, R: float
 ) -> Dict[str, float]:
     """
     Simulates Monte Carlo paths for a given option under a higher interest rate and computes the expected payoff and variance.
+    (Importance Sampling estimator)
     Parameters:
     nsamp (int): Number of samples (paths) to simulate.
     h (float): Time step size.
@@ -114,7 +58,6 @@ def is_mc_drift_in_bm(
     dW_drift = np.random.normal(loc=phi * h, scale=np.sqrt(h), size=(nsamp, nsteps))
 
     # simulate paths with higher interest rate R, this is embedded into dW_drift
-    # so the option.r parameter is not an error.
     S = batch_simulate_path(
         S,
         option.r,
@@ -138,42 +81,6 @@ def is_mc_drift_in_bm(
 
     return result
 
-
-def is_mc(nsamp: int, h: float, option: Option, R: float) -> Dict[str, float]:
-    """
-    Perform importance sampling Monte Carlo simulation for a given option.
-    Parameters:
-    nsamp (int): Number of samples to simulate.
-    h (float): Time step size.
-    option (Option): Option object containing parameters such as initial stock price (S0), 
-                     volatility (sigma), risk-free rate (r), and payoff function.
-    R (float): Higher interest rate for importance sampling.
-    Returns:
-    Dict[str, float]: A dictionary containing the expected payoff ('esp') and the variance ('var') 
-                      of the weighted payoffs.
-    """
-
-    nsteps = int(option.T / h)
-
-    # initialize paths and Brownian increments
-    S = np.zeros((nsamp, nsteps + 1))
-    S[:, 0] = option.S0
-    dW = np.random.standard_normal((nsamp, nsteps))  # N(0,1)
-
-    # simulate paths with higher interest rate R
-    S = batch_simulate_path(S, R, h, option.sigma, dW, nsteps, nsamp)
-    payoffs = option.payoff(S, h)
-
-    # compute the importance sampling weights
-    X = np.sum(np.sqrt(h) * option.sigma * dW, axis=1)
-    w = gbm_likelihood_ratio(X, option.r, R, option.sigma, option.T)
-
-    result = {
-        "esp": np.mean(payoffs * w),
-        "var": np.var(payoffs * w, ddof=1) / nsamp,
-    }
-
-    return result
 
 
 def mlmc_level(nsamp: int, h: float, option: Option) -> Tuple[float, float]:
