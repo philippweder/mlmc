@@ -43,7 +43,13 @@ def main(
 
     # run the pilot run to estimate E0, alpha, beta, V0
     pilot_results = mlmc_pilot(
-        nlevels_pilot, nsamp_pilot, h_coarse, option, alpha=None, beta=None, gamma=gamma # alpha and beta are estimated in the pilot run
+        nlevels_pilot,
+        nsamp_pilot,
+        h_coarse,
+        option,
+        alpha=None,
+        beta=None,
+        gamma=gamma,  # alpha and beta are estimated in the pilot run
     )
     E0 = pilot_results["E0"]
     alpha = pilot_results["alpha"]

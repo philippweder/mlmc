@@ -105,7 +105,7 @@ def main(
         h_crude = h_coarse / (2**optimal_L)
         logger.info(f"Number of samples for MC: {nsamp_crude}")
         logger.info(f"MC step size: {h_crude:.6f}")
-        
+
         start_mc = time.process_time()
         result_crude = standard_mc(nsamp_crude, h_crude, option)
         end_mc = time.process_time()
