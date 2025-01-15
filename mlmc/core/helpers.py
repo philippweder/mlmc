@@ -33,7 +33,6 @@ def mlmc_pilot(
     nsamp: int,
     h_coarse: int,
     option: Option,
-    nruns: int = 1,
     alpha: float | None = None,
     beta: float | None = None,
     gamma: float = 1,
@@ -70,22 +69,17 @@ def mlmc_pilot(
     diff_variances = np.zeros(len(levels))
     finest_variance = 0
 
-    for run in range(nruns):
+    pbar = tqdm(enumerate(h_values), desc="Running pilot run", total=len(h_values))
+    for i, h in pbar:
+        pbar.set_postfix({"h": h})
+        # coarse_fine_mc estimates difference between fine-level (2h) and coarse-level(h)
+        result = coarse_fine_mc(nsamp, h, option)
+        biases[i] += result["bias"]
+        diff_variances[i] += result["var_diff"] * nsamp
 
-        pbar = tqdm(enumerate(h_values), desc="Running pilot run", total=len(h_values))
-        for i, h in pbar:
-            pbar.set_postfix({"h": h, "run": run})
-            # coarse_fine_mc estimates difference between fine-level (2h) and coarse-level(h)
-            result = coarse_fine_mc(nsamp, h, option)
-            biases[i] += result["bias"]
-            diff_variances[i] += result["var_diff"] * nsamp
+        if i == nlevels - 1:
+            finest_variance += result["var_coarse"] * nsamp
 
-            if i == nlevels - 1:
-                finest_variance += result["var_coarse"] * nsamp
-
-    biases /= nruns
-    diff_variances /= nruns
-    finest_variance /= nruns
 
     if alpha is None or beta is None:
         (E0, alpha), bias_stds = fit_exponential_decay(np.arange(1, nlevels + 1), biases)
