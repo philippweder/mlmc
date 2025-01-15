@@ -2,7 +2,7 @@ import numpy as np
 from typing import Dict, List, Tuple
 
 from mlmc.core.options import Option
-from mlmc.core.simulate_path import batch_simulate_path
+from mlmc.core.sde import batch_simulate_path
 
 
 def standard_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
