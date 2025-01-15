@@ -2,7 +2,7 @@ import argparse
 import logging
 import numpy as np
 
-from mlmc.core.estimators import standard_mc, is_mc_drift_in_bm
+from mlmc.core.estimators import standard_mc, ic_mc
 from mlmc.core.options import AsianOption, BarrierOption
 
 logging.basicConfig(level=logging.INFO)
@@ -25,7 +25,7 @@ def main(nsamp: int, h: float, payoff: str="both") -> None:
         
         R = 10*asian_option.r #higher interest rate for dominating distr.
 
-        asian_is = is_mc_drift_in_bm(nsamp, h, asian_option, R)
+        asian_is = ic_mc(nsamp, h, asian_option, R)
         logger.info(
             f"Asian option (importance sampling changing drift in b.m.) | E[Y]: {asian_is['esp']}, Var[Y]: {asian_is['var']}"
         )
@@ -40,7 +40,7 @@ def main(nsamp: int, h: float, payoff: str="both") -> None:
          
         R = 10*barrier_option.r #higher interest rate for dominating distr.
 
-        barrier_is = is_mc_drift_in_bm(nsamp, h, barrier_option, R)
+        barrier_is = ic_mc(nsamp, h, barrier_option, R)
         logger.info(
             f"Barrier option (importance sampling changing drift in b.m.) | E[Y]: {barrier_is['esp']}, Var[Y]: {barrier_is['var']}"
         )

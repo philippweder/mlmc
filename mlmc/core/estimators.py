@@ -33,7 +33,7 @@ def standard_mc(nsamp: int, h: float, option: Option) -> Dict[str, float]:
     return result
 
 
-def is_mc_drift_in_bm(
+def ic_mc(
     nsamp: int, h: float, option: Option, R: float
 ) -> Dict[str, float]:
     """
