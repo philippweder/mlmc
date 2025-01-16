@@ -1,5 +1,5 @@
 # Multilevel Monte Carlo for Option Pricing
-This repository contains the code to answer the [questions](project.pdf) and generate the plots in the report.
+This repository contains the code generate the plots in the report.
 
 
 ## Installation
