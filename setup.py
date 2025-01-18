@@ -3,12 +3,30 @@ from setuptools import setup, find_packages
 setup(
     name='mlmc',       # Replace with your package name
     version='0.1',                  # Package version
-    author='Your Name',             # Author name
-    author_email='your@email.com',  # Author email
-    description='Description of your package',  # Short description
-    long_description='Long description of your package',  # Full description
+    author='Philipp Weder',             # Author name
+    author_email='wederphil@gmail.com',  # Author email
+    description='Implementation of the multi-level Monte Carlo method for option pricing',  # Short description
+    long_description=
+    """
+    # MLMC: Multi-Level Monte Carlo Method for Option Pricing
+
+    This package provides an implementation of the multi-level Monte Carlo (MLMC) method for option pricing. The MLMC method is a powerful technique used in computational finance to efficiently estimate the expected value of a financial option by combining simulations at different levels of accuracy.
+
+    ## Features
+
+    - Efficient option pricing using the MLMC method
+    - Support for various types of options
+    - Easy-to-use API for integrating with other financial models
+
+    ## Installation
+
+    You can install the package using pip:
+    ```
+    pip install -e .
+    ```
+    """,
     long_description_content_type='text/markdown',  # Description content type
-    url='https://github.com/your_username/your_package_name',  # URL to your package repository
+    url='https://github.com/philippweder/mlmc',  # URL to your package repository
     packages=find_packages(),       # Automatically find all packages in the directory
     install_requires=[              # List of dependencies required to run your package
         # Add more dependencies as needed
